@@ -122,8 +122,8 @@ module.exports = {
         },
         {
           column_name: 'content',
-          type: 'string',
-          required: true
+          type: 'jsonb',
+          default: '{}'
         },
         {
           column_name: 'image_url',
