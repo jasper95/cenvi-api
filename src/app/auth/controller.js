@@ -16,14 +16,8 @@ export default class UserController {
     this.serviceLocator = serviceLocator
   }
 
-  async getSession({ session }) {
-    const { user_id, token } = session
-    let [user] = await this.DB.filter('user', { id: user_id })
-    user = await this.Model.auth.getUserData(user)
-    return {
-      ...user,
-      token
-    }
+  async getSession({ user }) {
+    return user
   }
 
   async signup({ params }) {
