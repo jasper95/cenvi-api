@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'jobhunt-api',
+    name: 'cenvi-api',
     script: './build/server.js',
     instances: 1,
     watch: ['build'],
