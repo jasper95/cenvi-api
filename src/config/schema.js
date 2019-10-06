@@ -127,6 +127,16 @@ module.exports = {
           default: '{}'
         },
         {
+          column_name: 'excerpt',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'tags',
+          type: 'jsonb',
+          default: '[]'
+        },
+        {
           column_name: 'image_url',
           type: 'string',
           required: true
