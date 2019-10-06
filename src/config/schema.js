@@ -114,9 +114,10 @@ module.exports = {
     },
     {
       table_name: 'blog',
+      slug: true,
       columns: [
         {
-          column_name: 'title',
+          column_name: 'name',
           type: 'string',
           required: true
         },
