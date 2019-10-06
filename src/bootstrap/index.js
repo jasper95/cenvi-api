@@ -13,6 +13,7 @@ export default async ({ server, log }) => {
   const dir = path.join(__dirname, './initializers')
 
   sendgrid.setApiKey(process.env.SEND_GRID_API_KEY)
+  console.log('process.env.SEND_GRID_API_KEY: ', process.env.SEND_GRID_API_KEY);
 
   serviceLocator.registerService('sendgrid', sendgrid)
   serviceLocator.registerService('logger', log)

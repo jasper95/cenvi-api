@@ -15,6 +15,7 @@ import {
 
 export default async function initializeDB(self) {
   const { database: db_name, port, host } = database.connection
+  console.log('database: ', database);
   const query_wrapper = createProxy(new QueryWrapper(schema, database))
   self.DB = query_wrapper
   self.knex = query_wrapper.knex

@@ -8,7 +8,7 @@ const routes = {
   post: [
     {
       url: '/file/upload',
-      handler: 'uploadFile'
+      handler: 'uploadFile2'
     }
   ]
 }

@@ -17,7 +17,7 @@ export default function initializeControllers(self) {
       log('info', '%s - %s [Params: %s]', class_name, prototype, util.inspect(omit(req.params, omit_params)))
       return targetValue.apply(target, args)
         .then((response) => {
-          if (response !== undefined) {
+          if (response !== undefined && res.headersSent) {
             res.send(200, response)
           }
         })

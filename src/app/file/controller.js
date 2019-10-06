@@ -4,7 +4,7 @@ import {
   uploadToS3
 } from 'utils'
 
-export default class JobController {
+export default class FileController {
   constructor(dependency) {
     const {
       DB, knex, Model, serviceLocator
@@ -54,5 +54,22 @@ export default class JobController {
       node,
       { id, [type]: filename }
     )
+  }
+
+  async uploadFile2({ files, params }) {
+    const {
+      uuid, partindex, totalparts, filename
+    } = params
+    const { file } = files
+    file.name = filename;
+    const response = {
+      success: false
+    };
+    await this.Model.file.storeChunk(file.path, uuid, partindex, totalparts)
+    if (partindex >= totalparts - 1) {
+      await this.Model.file.combineChunks(filename, uuid)
+    }
+    response.success = true;
+    return response
   }
 }
