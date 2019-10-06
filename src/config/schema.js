@@ -142,6 +142,17 @@ module.exports = {
           required: true
         },
         {
+          column_name: 'status',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'published_date',
+          type: 'timestamp',
+          type_params: [{ useTz: true }],
+          required: true
+        },
+        {
           column_name: 'user_id',
           type: 'uuid',
           foreign_key: true,
