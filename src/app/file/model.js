@@ -1,7 +1,8 @@
 import fse from 'fs-extra'
-import fs from 'fs'
 import path from 'path'
-import util from 'util'
+import {
+  uploadToS3
+} from 'utils'
 
 export default class FileModel {
   async moveFile(des_dir, src, des) {
@@ -9,10 +10,14 @@ export default class FileModel {
     return fse.move(src, des, { overwrite: true })
   }
 
-  moveUploadedFile(file, uuid) {
+  async moveUploadedFile(file, uuid) {
     const des_dir = path.join(process.env.MOUNT_DIR, uuid)
     const file_des = path.join(des_dir, file.name);
 
+    if (process.env.UPLOAD_TO_S3) {
+      const blob = await fs.readFileAsync(file.path)
+      return uploadToS3(blob, file_des.slice(1).join('/'))
+    }
     return this.moveFile(des_dir, file.path, file_des);
   }
 
@@ -28,8 +33,7 @@ export default class FileModel {
     const des_dir = path.join(process.env.MOUNT_DIR, uuid);
     const chunk_dir = path.join(process.env.MOUNT_DIR, uuid, process.env.CHUNK_DIR)
     const file_des = path.join(des_dir, file_name);
-    const readDir = util.promisify(fs.readdir)
-    const file_names = await readDir(chunk_dir)
+    const file_names = await fs.readdirAsync(chunk_dir)
 
     file_names.sort()
     const des_stream = fs.createWriteStream(file_des, { flags: 'a' });
@@ -52,6 +56,10 @@ export default class FileModel {
       }
       appendToStream(des_stream, chunk_dir, file_names, 0)
     })
+    if (process.env.UPLOAD_TO_S3) {
+      const blob = await fs.readFileAsync(file_des)
+      await uploadToS3(blob, path.join('uploads', file_des.split('/').slice(1).join('/')))
+    }
     return fse.remove(chunk_dir)
   }
 

@@ -2,8 +2,7 @@ import util from 'util'
 import path from 'path'
 import { omit } from 'lodash'
 import {
-  createProxy,
-  readDirPromise
+  createProxy
 } from 'utils'
 
 export default function initializeControllers(self) {
@@ -17,7 +16,7 @@ export default function initializeControllers(self) {
       log('info', '%s - %s [Params: %s]', class_name, prototype, util.inspect(omit(req.params, omit_params)))
       return targetValue.apply(target, args)
         .then((response) => {
-          if (response !== undefined && res.headersSent) {
+          if (response !== undefined && !res.headersSent) {
             res.send(200, response)
           }
         })
@@ -48,7 +47,7 @@ export default function initializeControllers(self) {
       })
     })
   }
-  return readDirPromise(app)
+  return fs.readdirAsync(app)
     .filter(module_name => module_name !== 'base')
     .map(initRoutes)
     .then(() => initRoutes('base'))

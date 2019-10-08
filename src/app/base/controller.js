@@ -8,8 +8,13 @@ export default class BaseController {
   }
 
   async getNodeList({ params }) {
-    const { node, fields = [], ...other_params } = params
-    return this.DB.filter(node, other_params, fields)
+    const {
+      node, fields = [], size = 10, page = 1, ...other_params
+    } = params
+    return this.DB
+      .filter(node, other_params, fields)
+      .limit(size)
+      .offset(size * (page - 1))
   }
 
   async getNodeDetails({ params }) {

@@ -2,7 +2,6 @@ import path from 'path'
 import fs from 'fs'
 import {
   createProxy,
-  readDirPromise,
   serviceLocator
 } from 'utils'
 
@@ -17,6 +16,6 @@ export default async function initializeModels(self) {
       self.Model[module_name] = createProxy(service)
     }
   }
-  return readDirPromise(app_path)
+  return fs.readdirAsync(app_path)
     .map(initModels)
 }

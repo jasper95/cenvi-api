@@ -5,8 +5,6 @@ import {
   auth, logger, cors, requestLogger
 } from './middlewares'
 
-global.Promise = require('bluebird')
-
 const APP_NAME = process.env.npm_package_name
 const ENV = process.env.NODE_ENV || 'default'
 

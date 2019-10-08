@@ -3,7 +3,6 @@ import util from 'util'
 import sendgrid from '@sendgrid/mail'
 import S3Client from 'aws-sdk/clients/s3'
 import {
-  readDirPromise,
   serviceLocator
 } from 'utils'
 
@@ -23,7 +22,7 @@ export default async ({ server, log }) => {
   }))
 
   const context = { server, log, serviceLocator }
-  return readDirPromise(dir)
+  return fs.readdirAsync(dir)
     .then(files => files.sort())
     .mapSeries(async (file) => {
       const { default: initializer } = require(`${dir}/${file}`) // eslint-disable-line
