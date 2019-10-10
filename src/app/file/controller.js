@@ -67,7 +67,9 @@ export default class FileController {
     };
     await this.Model.file.storeChunk(file.path, uuid, partindex, totalparts)
     if (partindex >= totalparts - 1) {
-      await this.Model.file.combineChunks(filename, uuid)
+      const file_path = await this.Model.file.combineChunks(filename, uuid)
+      response.file_path = file_path
+      response.id = uuid
     }
     response.success = true;
     return response

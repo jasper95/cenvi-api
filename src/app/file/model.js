@@ -56,11 +56,13 @@ export default class FileModel {
       }
       appendToStream(des_stream, chunk_dir, file_names, 0)
     })
+    const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
     if (process.env.UPLOAD_TO_S3) {
       const blob = await fs.readFileAsync(file_des)
-      await uploadToS3(blob, path.join('uploads', file_des.split('/').slice(1).join('/')))
+      await uploadToS3(blob, file_path)
     }
-    return fse.remove(chunk_dir)
+    await fse.remove(chunk_dir)
+    return file_path
   }
 
   getChunkFilename(index, count) {
