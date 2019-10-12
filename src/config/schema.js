@@ -163,6 +163,58 @@ module.exports = {
           on_delete: 'CASCADE'
         }
       ]
+    },
+    {
+      table_name: 'photo',
+      columns: [
+        {
+          column_name: 'file_path',
+          type: 'string',
+          required: true
+        }
+      ]
+    },
+    {
+      table_name: 'album',
+      slug: true,
+      columns: [
+        {
+          column_name: 'name',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'photos',
+          type: 'jsonb',
+          default: '[]'
+        },
+        {
+          column_name: 'excerpt',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'status',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'published_date',
+          type: 'timestamp',
+          type_params: [{ useTz: true }],
+          required: true
+        },
+        {
+          column_name: 'user_id',
+          type: 'uuid',
+          foreign_key: true,
+          required: true,
+          reference_table: 'user',
+          reference_column: 'id',
+          on_update: 'CASCADE',
+          on_delete: 'CASCADE'
+        }
+      ]
     }
   ]
 }

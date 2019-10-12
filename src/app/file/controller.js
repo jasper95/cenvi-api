@@ -70,6 +70,10 @@ export default class FileController {
       const file_path = await this.Model.file.combineChunks(filename, uuid)
       response.file_path = file_path
       response.id = uuid
+      await this.DB.insert('photo', {
+        id: uuid,
+        file_path
+      })
     }
     response.success = true;
     return response
