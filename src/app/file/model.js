@@ -5,6 +5,10 @@ import {
 } from 'utils'
 
 export default class FileModel {
+  constructor({ DB }) {
+    this.DB = DB
+  }
+
   async moveFile(des_dir, src, des) {
     await fse.ensureDir(des_dir)
     return fse.move(src, des, { overwrite: true })
@@ -18,6 +22,7 @@ export default class FileModel {
       const blob = await fs.readFileAsync(file.path)
       const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
       await uploadToS3(blob, file_path)
+      await this.DB.insert('photo', { id: uuid, file_path })
       return file_path
     }
     return this.moveFile(des_dir, file.path, file_des);

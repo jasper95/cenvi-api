@@ -1,8 +1,6 @@
 import path from 'path'
 import mime from 'mime-types'
-import {
-  uploadToS3
-} from 'utils'
+import generateUUID from 'uuid/v4'
 
 export default class FileController {
   constructor(dependency) {
@@ -41,22 +39,19 @@ export default class FileController {
     stream.pipe(res)
   }
 
-  async uploadFile({ params }) {
-    const {
-      node, id, base64string, filename, type
-    } = params
-    const file_path = path.join(node, id, type, filename)
-    await uploadToS3(
-      Buffer.from(base64string.split(';').pop().replace('base64,', ''), 'base64'),
+  async simpleUpload({ files, params }) {
+    const { file } = files
+    const { entity, entity_id } = params
+    const file_path = await this.Model.file.moveUploadedFile(file, generateUUID())
+    if (entity && entity_id) {
+      await this.DB.updateById(entity, { id: entity_id, image_url: file_path })
+    }
+    return {
       file_path
-    )
-    return this.DB.updateById(
-      node,
-      { id, [type]: filename }
-    )
+    }
   }
 
-  async uploadFile2({ files, params }) {
+  async uploadFile({ files, params }) {
     const {
       uuid, partindex, totalparts, filename
     } = params

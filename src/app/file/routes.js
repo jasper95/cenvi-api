@@ -8,7 +8,11 @@ const routes = {
   post: [
     {
       url: '/file/upload',
-      handler: 'uploadFile2'
+      handler: 'uploadFile'
+    },
+    {
+      url: '/file/upload/simple',
+      handler: 'simpleUpload'
     }
   ]
 }
