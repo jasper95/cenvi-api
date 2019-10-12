@@ -16,7 +16,9 @@ export default class FileModel {
 
     if (process.env.UPLOAD_TO_S3) {
       const blob = await fs.readFileAsync(file.path)
-      return uploadToS3(blob, file_des.slice(1).join('/'))
+      const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
+      await uploadToS3(blob, file_path)
+      return file_path
     }
     return this.moveFile(des_dir, file.path, file_des);
   }
