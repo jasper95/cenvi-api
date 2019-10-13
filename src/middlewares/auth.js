@@ -15,9 +15,8 @@ const public_routes = {
 
 const basic_auth_routes = {
   GET: [
-    '/job/:id',
-    '/job_category',
-    '/company/:id'
+    '/published_blog',
+    '/published_blog/:id'
   ],
   POST: [
     '/signup',

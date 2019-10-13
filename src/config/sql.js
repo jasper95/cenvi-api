@@ -8,6 +8,16 @@ export const views = [
         (b.user_id = "user".id)
       where status = 'published' and published_date <= NOW()
     `
+  },
+  {
+    name: 'published_album',
+    query: `
+      select b.*, concat_ws(' ', "user".first_name, "user".last_name) as author
+        from album b
+      left join "user" on
+        (b.user_id = "user".id)
+      where status = 'published' and published_date <= NOW()
+    `
   }
 ]
 export const functions = [
