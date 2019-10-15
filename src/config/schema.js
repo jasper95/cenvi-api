@@ -213,6 +213,11 @@ module.exports = {
           reference_column: 'id',
           on_update: 'CASCADE',
           on_delete: 'CASCADE'
+        },
+        {
+          column_name: 'tags',
+          type: 'jsonb',
+          default: '[]'
         }
       ]
     }
