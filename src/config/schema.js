@@ -228,11 +228,17 @@ module.exports = {
     },
     {
       table_name: 'shapefile',
+      slug: true,
       columns: [
         {
           column_name: 'name',
           type: 'string',
           required: true
+        },
+        {
+          column_name: 'description',
+          type: 'string',
+          default: ''
         },
         {
           column_name: 'tags',
