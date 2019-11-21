@@ -220,6 +220,52 @@ module.exports = {
           default: '[]'
         }
       ]
+    },
+    {
+      table_name: 'category',
+      columns: [
+        {
+          column_name: 'name',
+          type: 'string',
+          required: true
+        }
+      ]
+    },
+    {
+      table_name: 'shapefile',
+      slug: true,
+      columns: [
+        {
+          column_name: 'name',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'description',
+          type: 'string',
+          default: ''
+        },
+        {
+          column_name: 'tags',
+          type: 'jsonb',
+          default: '[]'
+        },
+        {
+          column_name: 'file_path',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'category_id',
+          type: 'uuid',
+          foreign_key: true,
+          required: true,
+          reference_table: 'category',
+          reference_column: 'id',
+          on_update: 'CASCADE',
+          on_delete: 'CASCADE'
+        }
+      ]
     }
   ]
 }
