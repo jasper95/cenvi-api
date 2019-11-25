@@ -12,7 +12,8 @@ module.exports = {
     "globals": {
         "Promise": true,
         "util": true,
-        "fs": true
+        "fs": true,
+        "fetch": true
     },
     "settings": { "import/resolver": { "node": { "paths": ["./src"] } } }
 };
