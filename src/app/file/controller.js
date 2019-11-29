@@ -53,8 +53,8 @@ export default class FileController {
 
   async uploadShapefile({ files, params }) {
     const { file } = files
-    const { file_path, extension } = params
-    await this.Model.file.uploadGeoJson(file, extension, file_path)
+    const { extension } = params
+    await this.Model.file.uploadGeoData(file.path, generateUUID(), extension)
     return {
       uploaded: true
     }
@@ -84,16 +84,16 @@ export default class FileController {
   }
 
   async validateGeodata({ files, params }) {
-    const { extension } = params
-    const geojson = await this.Model.file.getGeodata(files.file, extension)
-    if (geojson.features.length === 0) {
-      throw { success: false, message: 'Invalid geodata' }
-    }
+    // const { extension } = params
+    // const geojson = await this.Model.file.getGeodata(files.file, extension)
+    // if (geojson.features.length === 0) {
+    //   throw { success: false, message: 'Invalid geodata' }
+    // }
     return { is_valid: true }
   }
 
   async getShapefileGeodata({ params }) {
-    const shapefile = await this.DB.find('shapefile', params.id)
-    return this.Model.file.getGeoDataFromUrl(`https://dg01ez010h641.cloudfront.net/${shapefile.file_path}`)
+    // const shapefile = await this.DB.find('shapefile', params.id)
+    // return this.Model.file.getGeoDataFromUrl(`https://dg01ez010h641.cloudfront.net/${shapefile.file_path}`)
   }
 }

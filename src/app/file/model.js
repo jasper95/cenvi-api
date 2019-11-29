@@ -3,115 +3,13 @@ import path from 'path'
 import {
   uploadToS3
 } from 'utils'
-import parseDbf from 'parsedbf'
-import parseShp from 'shpjs/lib/parseShp'
-import unzip from 'shpjs/lib/unzip'
-import proj4 from 'proj4'
-import togeojson from 'togeojson'
-import { DOMParser } from 'xmldom'
-import util from 'util'
-import zlib from 'zlib'
-
-const topojson = require('topojson-server')
-// import topojson from 'topojson-server'
+import gdal from 'gdal'
+import archiver from 'archiver'
+import JSZip from 'jszip'
 
 export default class FileModel {
   constructor({ DB }) {
     this.DB = DB
-  }
-
-  async getKmlGeodata(kml_path) {
-    const string = await fs.readFileAsync(kml_path, 'utf-8')
-    const kml = new DOMParser().parseFromString(string)
-    return togeojson.kml(kml, { styles: true });
-  }
-
-  async getZipGeodata(buffer, whiteList = []) {
-    const zip = unzip(buffer);
-    const names = []
-    Object.keys(zip)
-      .forEach((key) => {
-        if (key.indexOf('__MACOSX') !== -1) {
-        // continue;
-        } else if (key.slice(-3).toLowerCase() === 'shp') {
-          names.push(key.slice(0, -4));
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
-        } else if (key.slice(-3).toLowerCase() === 'prj') {
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = proj4(zip[key]);
-        } else if (key.slice(-4).toLowerCase() === 'json' || whiteList.indexOf(key.split('.').pop()) > -1) {
-          names.push(key.slice(0, -3) + key.slice(-3).toLowerCase());
-        } else if (key.slice(-3).toLowerCase() === 'dbf' || key.slice(-3).toLowerCase() === 'cpg') {
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
-        }
-      })
-    if (!names.length) {
-      throw { success: false, message: 'no layers founds' }
-    }
-    const geojson = names.map((name) => {
-      let parsed,
-        dbf;
-      const lastDotIdx = name.lastIndexOf('.');
-      if (lastDotIdx > -1 && name.slice(lastDotIdx).indexOf('json') > -1) {
-        parsed = JSON.parse(zip[name]);
-        parsed.fileName = name.slice(0, lastDotIdx);
-      } else if (whiteList.indexOf(name.slice(lastDotIdx + 1)) > -1) {
-        parsed = zip[name];
-        parsed.fileName = name;
-      } else {
-        if (zip[`${name}.dbf`]) {
-          dbf = parseDbf(zip[`${name}.dbf`], zip[`${name}.cpg`]);
-        }
-        parsed = combine([parseShp(zip[`${name}.shp`], zip[`${name}.prj`]), dbf]);
-        parsed.fileName = name;
-      }
-      return parsed;
-    });
-    if (geojson.length === 1) {
-      return geojson[0];
-    }
-    return geojson;
-    function combine(arr) {
-      const out = {};
-      out.type = 'FeatureCollection';
-      out.features = [];
-      let i = 0;
-      const len = arr[0].length;
-      while (i < len) {
-        out.features.push({
-          type: 'Feature',
-          geometry: arr[0][i],
-          properties: arr[1][i]
-        });
-        i++;
-      }
-      return out;
-    }
-  }
-
-  async uploadGeoJson(file, extension, file_des) {
-    const geodata = await this.getGeodata(file, extension)
-    if (process.env.UPLOAD_TO_S3) {
-      const gzip = util.promisify(zlib.gzip)
-      const encoded = await gzip(Buffer.from(JSON.stringify(geodata)))
-      await uploadToS3(encoded, file_des, { enconding: 'gzip', content_type: 'application/json' })
-    }
-  }
-
-  async getGeodata(file, extension) {
-    let geojson
-    const buffer = await fs.readFileAsync(file.path)
-    geojson = await this.getZipGeodata(buffer)
-    // return geojson
-    // if (extension === 'zip') {
-    // }
-    // geojson = await this.getKmlGeodata(file.path)
-    return topojson.topology({ data: geojson })
-  }
-
-  async getGeoDataFromUrl(url) {
-    const buffer = await fetch(url)
-      .then(res => res.buffer())
-    return this.getZipGeodata(buffer)
   }
 
   async moveFile(des_dir, src, des) {
@@ -181,5 +79,73 @@ export default class FileModel {
     const digits = (`${count}`).length
     const zeros = new Array(digits + 1).join('0');
     return (zeros + index).slice(-digits);
+  }
+
+  kmlToShapefile(src, des) {
+    const ds = gdal.open(src)
+    const driver = gdal.drivers.get('ESRI Shapefile')
+    const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
+    ds.close();
+    dscopy.close();
+  }
+
+  async extractKmz(src, des) {
+    const buffer = await fs.readFileAsync(src)
+    const zip = new JSZip();
+    const { files } = await zip.loadAsync(buffer)
+
+    const result = await files['doc.kml'].async('nodebuffer')
+    return fs.writeFileAsync(des, result)
+  }
+
+  archiveFolder(src, des) {
+    const zip = archiver('zip');
+    const output = fs.createWriteStream(des);
+    return new Promise((resolve, reject) => {
+      zip.directory(src, '')
+      zip.finalize();
+      zip.pipe(output)
+      zip.on('error', reject)
+      zip.on('end', resolve)
+    })
+  }
+
+  async uploadGeoData(src, id, ext) {
+    let shapefile_final
+    const shapefile_des = path.join(process.env.TMP_DIR, id)
+    if (ext === 'zip') {
+      shapefile_final = src
+      // return this.uploadToGeoServer(src, id)
+    }
+    // else if (ext === 'kml') {
+    //   shapefile_final = `${shapefile_final}.zip`
+    //   this.kmlToShapefile(src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // } else if (ext === 'kmz') {
+    //   const kml_src = path.join(process.env.TMP_DIR, 'kml', id)
+    //   await this.extractKmz(src, kml_src)
+    //   this.kmlToShapefile(kml_src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // }
+    return this.uploadToGeoServer(shapefile_final, id)
+  }
+
+  uploadToGeoServer(src, datastore) {
+    const WORKSPACE = 'topp';
+    const PUBLISHSHAPEURL = `${process.env.GEOSERVER_URL}/workspaces/${WORKSPACE}/datastores/${datastore}/file.shp`;
+    const stats = fs.statSync(src);
+    const fileSizeInBytes = stats.size;
+    const readStream = fs.createReadStream(src);
+    const config = {
+      headers: {
+        Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`,
+        'Content-Type': 'application/zip',
+        Accept: 'application/json',
+        'Content-length': fileSizeInBytes
+      },
+      method: 'PUT',
+      body: readStream
+    }
+    return fetch(PUBLISHSHAPEURL, config)
   }
 }
