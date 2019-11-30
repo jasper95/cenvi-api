@@ -78,7 +78,7 @@ export const formatHTML = async (template_name, content) => {
     }, html)
 }
 
-export const uploadToS3 = (buffer, file_path, options) => {
+export const uploadToS3 = (buffer, file_path, options = {}) => {
   const s3 = serviceLocator.get('s3')
   const log = serviceLocator.get('logger')
   const bucket = process.env.AWS_BUCKET

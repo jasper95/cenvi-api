@@ -17,18 +17,14 @@ export default class FileModel {
     return fse.move(src, des, { overwrite: true })
   }
 
-  async moveUploadedFile(file, uuid) {
-    const des_dir = path.join(process.env.MOUNT_DIR, uuid)
-    const file_des = path.join(des_dir, file.name);
-
+  async moveUploadedFile(file, file_des) {
     if (process.env.UPLOAD_TO_S3) {
       const blob = await fs.readFileAsync(file.path)
-      const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
-      await uploadToS3(blob, file_path)
-      await this.DB.insert('photo', { id: uuid, file_path })
-      return file_path
+      await uploadToS3(blob, file_des)
+      await this.DB.insert('photo', { file_path: file_des })
+      return file_des
     }
-    return this.moveFile(des_dir, file.path, file_des);
+    return this.moveFile(process.env.MOUNT_DIR, file.path, file_des);
   }
 
   storeChunk(file_path, uuid, index, chunk_num) {
