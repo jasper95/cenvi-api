@@ -253,7 +253,8 @@ module.exports = {
         {
           column_name: 'file_path',
           type: 'string',
-          required: true
+          default: ''
+          // required: true
         },
         {
           column_name: 'category_id',

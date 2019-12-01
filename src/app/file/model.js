@@ -3,6 +3,9 @@ import path from 'path'
 import {
   uploadToS3
 } from 'utils'
+import gdal from 'gdal'
+import archiver from 'archiver'
+import JSZip from 'jszip'
 
 export default class FileModel {
   constructor({ DB }) {
@@ -14,18 +17,14 @@ export default class FileModel {
     return fse.move(src, des, { overwrite: true })
   }
 
-  async moveUploadedFile(file, uuid) {
-    const des_dir = path.join(process.env.MOUNT_DIR, uuid)
-    const file_des = path.join(des_dir, file.name);
-
+  async moveUploadedFile(file, file_des) {
     if (process.env.UPLOAD_TO_S3) {
       const blob = await fs.readFileAsync(file.path)
-      const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
-      await uploadToS3(blob, file_path)
-      await this.DB.insert('photo', { id: uuid, file_path })
-      return file_path
+      await uploadToS3(blob, file_des)
+      await this.DB.insert('photo', { file_path: file_des })
+      return file_des
     }
-    return this.moveFile(des_dir, file.path, file_des);
+    return this.moveFile(process.env.MOUNT_DIR, file.path, file_des);
   }
 
   storeChunk(file_path, uuid, index, chunk_num) {
@@ -76,5 +75,73 @@ export default class FileModel {
     const digits = (`${count}`).length
     const zeros = new Array(digits + 1).join('0');
     return (zeros + index).slice(-digits);
+  }
+
+  kmlToShapefile(src, des) {
+    const ds = gdal.open(src)
+    const driver = gdal.drivers.get('ESRI Shapefile')
+    const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
+    ds.close();
+    dscopy.close();
+  }
+
+  async extractKmz(src, des) {
+    const buffer = await fs.readFileAsync(src)
+    const zip = new JSZip();
+    const { files } = await zip.loadAsync(buffer)
+
+    const result = await files['doc.kml'].async('nodebuffer')
+    return fs.writeFileAsync(des, result)
+  }
+
+  archiveFolder(src, des) {
+    const zip = archiver('zip');
+    const output = fs.createWriteStream(des);
+    return new Promise((resolve, reject) => {
+      zip.directory(src, '')
+      zip.finalize();
+      zip.pipe(output)
+      zip.on('error', reject)
+      zip.on('end', resolve)
+    })
+  }
+
+  async uploadGeoData(src, id, ext) {
+    let shapefile_final
+    const shapefile_des = path.join(process.env.TMP_DIR, id)
+    if (ext === 'zip') {
+      shapefile_final = src
+      // return this.uploadToGeoServer(src, id)
+    }
+    // else if (ext === 'kml') {
+    //   shapefile_final = `${shapefile_final}.zip`
+    //   this.kmlToShapefile(src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // } else if (ext === 'kmz') {
+    //   const kml_src = path.join(process.env.TMP_DIR, 'kml', id)
+    //   await this.extractKmz(src, kml_src)
+    //   this.kmlToShapefile(kml_src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // }
+    return this.uploadToGeoServer(shapefile_final, id)
+  }
+
+  uploadToGeoServer(src, datastore) {
+    const WORKSPACE = 'topp';
+    const PUBLISHSHAPEURL = `${process.env.GEOSERVER_URL}/workspaces/${WORKSPACE}/datastores/${datastore}/file.shp`;
+    const stats = fs.statSync(src);
+    const fileSizeInBytes = stats.size;
+    const readStream = fs.createReadStream(src);
+    const config = {
+      headers: {
+        Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`,
+        'Content-Type': 'application/zip',
+        Accept: 'application/json',
+        'Content-length': fileSizeInBytes
+      },
+      method: 'PUT',
+      body: readStream
+    }
+    return fetch(PUBLISHSHAPEURL, config)
   }
 }

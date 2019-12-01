@@ -3,10 +3,13 @@ import fs from 'fs'
 import util from 'util'
 import path from 'path'
 import slugify from 'slugify'
+import fetch from 'node-fetch'
 
 global.Promise = require('bluebird')
 
 global.fs = Promise.promisifyAll(fs)
+fetch.Promise = global.Promise
+global.fetch = fetch
 
 export const serviceLocator = {
   services: {},
@@ -75,7 +78,7 @@ export const formatHTML = async (template_name, content) => {
     }, html)
 }
 
-export const uploadToS3 = (buffer, file_path) => {
+export const uploadToS3 = (buffer, file_path, options = {}) => {
   const s3 = serviceLocator.get('s3')
   const log = serviceLocator.get('logger')
   const bucket = process.env.AWS_BUCKET
@@ -84,7 +87,9 @@ export const uploadToS3 = (buffer, file_path) => {
     s3.upload({
       Bucket: bucket,
       Key: file_path,
-      Body: buffer
+      Body: buffer,
+      ...options.encoding && { ContentEncoding: options.encoding },
+      ...options.content_type && { ContentType: options.content_type }
     }, (err, response) => {
       if (err) {
         reject(err)

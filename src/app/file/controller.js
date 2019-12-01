@@ -41,13 +41,19 @@ export default class FileController {
 
   async simpleUpload({ files, params }) {
     const { file } = files
-    const { entity, entity_id } = params
-    const file_path = await this.Model.file.moveUploadedFile(file, generateUUID())
-    if (entity && entity_id) {
-      await this.DB.updateById(entity, { id: entity_id, image_url: file_path })
-    }
+    const { file_path } = params
+    await this.Model.file.moveUploadedFile(file, file_path)
     return {
       file_path
+    }
+  }
+
+  async uploadShapefile({ files, params }) {
+    const { file } = files
+    const { extension } = params
+    await this.Model.file.uploadGeoData(file.path, generateUUID(), extension)
+    return {
+      uploaded: true
     }
   }
 

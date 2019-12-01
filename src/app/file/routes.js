@@ -13,6 +13,10 @@ const routes = {
     {
       url: '/file/upload/simple',
       handler: 'simpleUpload'
+    },
+    {
+      url: '/file/upload/shapefile',
+      handler: 'uploadShapefile'
     }
   ]
 }
