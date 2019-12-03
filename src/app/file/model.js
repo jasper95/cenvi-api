@@ -6,105 +6,10 @@ import {
 import gdal from 'gdal'
 import archiver from 'archiver'
 import JSZip from 'jszip'
-import uuid from 'uuid/v4'
 
 export default class FileModel {
   constructor({ DB }) {
     this.DB = DB
-  }
-
-  async getKmlGeodata(kml_path) {
-    const string = await fs.readFileAsync(kml_path, 'utf-8')
-    const kml = new DOMParser().parseFromString(string)
-    return togeojson.kml(kml, { styles: true });
-  }
-
-  async getZipGeodata(buffer, whiteList = []) {
-    const zip = unzip(buffer);
-    const names = []
-    Object.keys(zip)
-      .forEach((key) => {
-        if (key.indexOf('__MACOSX') !== -1) {
-        // continue;
-        } else if (key.slice(-3).toLowerCase() === 'shp') {
-          names.push(key.slice(0, -4));
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
-        } else if (key.slice(-3).toLowerCase() === 'prj') {
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = proj4(zip[key]);
-        } else if (key.slice(-4).toLowerCase() === 'json' || whiteList.indexOf(key.split('.').pop()) > -1) {
-          names.push(key.slice(0, -3) + key.slice(-3).toLowerCase());
-        } else if (key.slice(-3).toLowerCase() === 'dbf' || key.slice(-3).toLowerCase() === 'cpg') {
-          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
-        }
-      })
-    if (!names.length) {
-      throw { success: false, message: 'no layers founds' }
-    }
-    const geojson = names.map((name) => {
-      let parsed,
-        dbf;
-      const lastDotIdx = name.lastIndexOf('.');
-      if (lastDotIdx > -1 && name.slice(lastDotIdx).indexOf('json') > -1) {
-        parsed = JSON.parse(zip[name]);
-        parsed.fileName = name.slice(0, lastDotIdx);
-      } else if (whiteList.indexOf(name.slice(lastDotIdx + 1)) > -1) {
-        parsed = zip[name];
-        parsed.fileName = name;
-      } else {
-        if (zip[`${name}.dbf`]) {
-          dbf = parseDbf(zip[`${name}.dbf`], zip[`${name}.cpg`]);
-        }
-        parsed = combine([parseShp(zip[`${name}.shp`], zip[`${name}.prj`]), dbf]);
-        parsed.fileName = name;
-      }
-      return parsed;
-    });
-    if (geojson.length === 1) {
-      return geojson[0];
-    }
-    return geojson;
-    function combine(arr) {
-      const out = {};
-      out.type = 'FeatureCollection';
-      out.features = [];
-      let i = 0;
-      const len = arr[0].length;
-      while (i < len) {
-        out.features.push({
-          type: 'Feature',
-          geometry: arr[0][i],
-          properties: arr[1][i]
-        });
-        i++;
-      }
-      return out;
-    }
-  }
-
-  async uploadGeoJson(file, extension, file_des) {
-    const geodata = await this.getGeodata(file, extension)
-    if (process.env.UPLOAD_TO_S3) {
-      const gzip = util.promisify(zlib.gzip)
-      const encoded = await gzip(Buffer.from(JSON.stringify(geodata)))
-      await uploadToS3(encoded, file_des, { enconding: 'gzip', content_type: 'application/json' })
-    }
-  }
-
-  async getGeodata(file, extension) {
-    let geojson
-    const buffer = await fs.readFileAsync(file.path)
-    geojson = await this.getZipGeodata(buffer)
-    // return geojson
-    // if (extension === 'zip') {
-    // }
-    // geojson = await this.getKmlGeodata(file.path)
-    return topojson.topology({ data: geojson })
-  }
-
-  async getGeoDataFromUrl(url) {
-    const buffer = await fetch(url)
-      .then(res => res.buffer())
-    return this.getZipGeodata(buffer)
   }
 
   async moveFile(des_dir, src, des) {
@@ -172,18 +77,12 @@ export default class FileModel {
     return (zeros + index).slice(-digits);
   }
 
-  async kmlToShapefile(src, des, new_name) {
+  kmlToShapefile(src, des) {
     const ds = gdal.open(src)
     const driver = gdal.drivers.get('ESRI Shapefile')
     const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
     ds.close();
-    dscopy.close()
-    const files = await fs.readdirAsync(des)
-    return Promise.map(files, (fname) => {
-      const ext = fname.split('.').pop()
-      return fs
-        .renameAsync(path.join(des, fname), path.join(des, `${new_name}.${ext}`))
-    })
+    dscopy.close();
   }
 
   async extractKmz(src, des) {
@@ -209,39 +108,21 @@ export default class FileModel {
 
   async uploadGeoData(src, id, ext) {
     let shapefile_final
+    const shapefile_des = path.join(process.env.TMP_DIR, id)
     if (ext === 'zip') {
-      const buffer = await fs.readFileAsync(src)
-      const zip = new JSZip();
-      const { files } = await zip.loadAsync(buffer)
-      const filenames = Object.keys(files)
-      const extensions = filenames.map(e => e.split('.').pop())
-      const required_extensions = ['shp', 'shx', 'dbf', 'prj']
-      required_extensions.forEach((e) => {
-        if (!extensions.includes(e)) {
-          throw { success: false, message: `Unable to find ${e} extension` }
-        }
-      })
-      // check if shp dbf prj exists
-      shapefile_final = path.join(process.env.TMP_DIR, id)
-      await fse.ensureDir(shapefile_final)
-      await Promise.map(filenames, async (filename) => {
-        const extension = filename.split('.').pop()
-        const name = `${id}.${extension}`
-        const file_buffer = await files[filename].async('nodebuffer')
-        return fs.writeFileAsync(path.join(shapefile_final, name), file_buffer)
-      })
-      await this.archiveFolder(shapefile_final, `${shapefile_final}.zip`)
-      shapefile_final = `${shapefile_final}.zip`
-    } else if (ext === 'kml') {
-      // shapefile_final = `${shapefile_final}.zip`
-      // await this.kmlToShapefile(src, shapefile_des, id)
-      // await this.archiveFolder(shapefile_des, shapefile_final)
-    } else if (ext === 'kmz') {
-      // const kml_src = path.join(process.env.TMP_DIR, 'kml', id)
-      // await this.extractKmz(src, kml_src)
-      // await this.kmlToShapefile(kml_src, shapefile_des, id)
-      // await this.archiveFolder(shapefile_des, shapefile_final)
+      shapefile_final = src
+      // return this.uploadToGeoServer(src, id)
     }
+    // else if (ext === 'kml') {
+    //   shapefile_final = `${shapefile_final}.zip`
+    //   this.kmlToShapefile(src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // } else if (ext === 'kmz') {
+    //   const kml_src = path.join(process.env.TMP_DIR, 'kml', id)
+    //   await this.extractKmz(src, kml_src)
+    //   this.kmlToShapefile(kml_src, shapefile_des)
+    //   await this.archiveFolder(shapefile_des, shapefile_final)
+    // }
     return this.uploadToGeoServer(shapefile_final, id)
   }
 

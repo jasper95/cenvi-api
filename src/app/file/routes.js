@@ -1,10 +1,6 @@
 const routes = {
   get: [
     {
-      url: '/file/shapefile/:id',
-      handler: 'getShapefileGeodata'
-    },
-    {
       url: '/file/download',
       handler: 'downloadFile'
     }
