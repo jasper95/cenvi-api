@@ -23,7 +23,8 @@ const basic_auth_routes = {
   POST: [
     '/signup',
     '/login',
-    '/forgot-password'
+    '/forgot-password',
+    '/file/upload/shapefile'
   ],
   PUT: [
     '/user',

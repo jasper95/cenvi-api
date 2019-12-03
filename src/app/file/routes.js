@@ -21,10 +21,6 @@ const routes = {
     {
       url: '/file/upload/shapefile',
       handler: 'uploadShapefile'
-    },
-    {
-      url: '/file/validate/geodata',
-      handler: 'validateGeodata'
     }
   ]
 }

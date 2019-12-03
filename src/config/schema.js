@@ -251,12 +251,6 @@ module.exports = {
           default: '[]'
         },
         {
-          column_name: 'file_path',
-          type: 'string',
-          default: ''
-          // required: true
-        },
-        {
           column_name: 'category_id',
           type: 'uuid',
           foreign_key: true,

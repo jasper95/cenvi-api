@@ -4,12 +4,27 @@ import util from 'util'
 import path from 'path'
 import slugify from 'slugify'
 import fetch from 'node-fetch'
+import axios from 'axios'
+
+require('dotenv').config()
+
 
 global.Promise = require('bluebird')
 
 global.fs = Promise.promisifyAll(fs)
 fetch.Promise = global.Promise
 global.fetch = fetch
+
+const geoServerClient = axios.create({
+  headers: {
+    Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`
+  },
+  baseURL: process.env.GEOSERVER_URL
+})
+console.log('process.env.GEOSERVER_URL', process.env.GEOSERVER_URL)
+geoServerClient.interceptors.response.use(response => response.data, err => Promise.reject(err))
+
+export { geoServerClient }
 
 export const serviceLocator = {
   services: {},
@@ -78,7 +93,7 @@ export const formatHTML = async (template_name, content) => {
     }, html)
 }
 
-export const uploadToS3 = (buffer, file_path, options) => {
+export const uploadToS3 = (buffer, file_path, options = {}) => {
   const s3 = serviceLocator.get('s3')
   const log = serviceLocator.get('logger')
   const bucket = process.env.AWS_BUCKET
