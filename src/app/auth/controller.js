@@ -55,11 +55,11 @@ export default class UserController {
     const html = await formatHTML('signup', { confirm_link: `${process.env.PORTAL_LINK}/verify?token=${token}`, name })
     await sendgrid.send({
       from: {
-        name: 'RAMONS',
+        name: 'CENVI',
         email: process.env.EMAIL_FROM
       },
       to: user.email,
-      subject: 'Verify RAMONS Account',
+      subject: 'Verify CENVI Account',
       html
     })
 
@@ -87,11 +87,11 @@ export default class UserController {
     const html = await formatHTML('activate', { confirm_link: `${process.env.PORTAL_LINK}/activate?token=${token}`, name })
     await sendgrid.send({
       from: {
-        name: 'RAMONS',
+        name: 'CENVI',
         email: process.env.EMAIL_FROM
       },
       to: user.email,
-      subject: 'Verify RAMONS Account',
+      subject: 'Verify CENVI Account',
       html
     })
     return {
@@ -140,11 +140,11 @@ export default class UserController {
     const sendgrid = this.serviceLocator.get('sendgrid')
     await sendgrid.send({
       from: {
-        name: 'RAMONS',
+        name: 'CENVI',
         email: process.env.EMAIL_FROM
       },
       to: email,
-      subject: 'Reset RAMONS Account Password',
+      subject: 'Reset CENVI Account Password',
       html
     })
     return { success: true }
