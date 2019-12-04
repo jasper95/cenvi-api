@@ -1,13 +1,13 @@
 import { geoServerClient } from 'utils'
 
-const WORKSPACE_URL = `workspaces/${process.env.GEOSERVER_WORKSPACE}`
+const WORKSPACE_URL = `/workspaces/${process.env.GEOSERVER_WORKSPACE}`
 const STORE_URL = `${WORKSPACE_URL}/datastores/${process.env.GEOSERVER_STORE}`
 
 export default async function initGeoserver() {
   // get workspace
   const workspace = await geoServerClient.request({
     url: WORKSPACE_URL
-  }).catch(() => null)
+  })
 
   // check if geoserver workspace exists already
   if (!workspace) {

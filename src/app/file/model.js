@@ -1,10 +1,10 @@
 import fse from 'fs-extra'
 import path from 'path'
 import {
-  uploadToS3
+  uploadToS3,
+  geoServerClient
 } from 'utils'
 import gdal from 'gdal'
-import archiver from 'archiver'
 import JSZip from 'jszip'
 
 export default class FileModel {
@@ -77,14 +77,6 @@ export default class FileModel {
     return (zeros + index).slice(-digits);
   }
 
-  kmlToShapefile(src, des) {
-    const ds = gdal.open(src)
-    const driver = gdal.drivers.get('ESRI Shapefile')
-    const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
-    ds.close();
-    dscopy.close();
-  }
-
   async extractKmz(src, des) {
     const buffer = await fs.readFileAsync(src)
     const zip = new JSZip();
@@ -94,54 +86,74 @@ export default class FileModel {
     return fs.writeFileAsync(des, result)
   }
 
-  archiveFolder(src, des) {
-    const zip = archiver('zip');
-    const output = fs.createWriteStream(des);
-    return new Promise((resolve, reject) => {
-      zip.directory(src, '')
-      zip.finalize();
-      zip.pipe(output)
-      zip.on('error', reject)
-      zip.on('end', resolve)
+  async convertToGeoJson(src, des) {
+    const ds = gdal.open(src)
+    const driver = gdal.drivers.get('GeoJSON')
+    const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
+    ds.close();
+    dscopy.close()
+    return fs.readFileAsync(des, 'utf-8').then(e => JSON.parse(e))
+  }
+
+  async unzipAndValidate(src, des, exts = []) {
+    const zip = new JSZip()
+    const { files } = zip.loadAsync(src)
+    const required_files = Object.keys(files).filter((e) => {
+      const ext = e.split('.').pop()
+      return exts.includes(ext)
     })
+    if (required_files.length === 0) {
+      throw { success: false, message: `Must contain all required extensions: ${exts.join(', ')}` }
+    }
+    await Promise.map(required_files, async (file_name) => {
+      const buffer = await files[file_name].async('nodebuffer')
+      return fs.writeFileAsync(path.join(des, file_name), buffer)
+    })
+    return required_files
+  }
+
+  async loadToPostGis(geojson, uuid) {
+    const table_name = `postgis_${uuid}`
+
+    // generate features sql insert statements
+    const features = geojson.features.map(feature => ({
+      geom: this.knex.raw(`st_setsrid(st_geomfromgeojson('${JSON.stringify(feature.geometry)}'), 4326)`),
+      properties: feature.properties
+    }));
+
+    // create postgis table
+    await this.knex.schema.createTableIfNotExists(table_name, (table) => {
+      table.jsonb('properties').defaultTo('{}');
+      table.specificType('geom', 'geometry').notNullable();
+    })
+
+    // insert features
+    await this.knex(table_name).insert(features)
+    return table_name
   }
 
   async uploadGeoData(src, id, ext) {
-    let shapefile_final
-    const shapefile_des = path.join(process.env.TMP_DIR, id)
-    if (ext === 'zip') {
-      shapefile_final = src
-      // return this.uploadToGeoServer(src, id)
+    const des = path.join(process.env.TMP_DIR, id)
+    await fse.ensureDir(des)
+    let geojson
+    if (['zip', 'rar'].includes(ext)) {
+      const [shapefile_name] = await this.unzipAndValidate(src, des, ['shp'])
+      geojson = await this.convertToGeoJson(path.join(des, shapefile_name), path.join(des, 'result.geojson'))
+    } else if (ext === 'kmz') {
+      const [kml_name] = await this.unzipAndValidate(src, des, ['kml'])
+      geojson = await this.convertToGeoJson(path.join(des, kml_name), path.join(des, 'result.geojson'))
+    } else if (ext === 'kml') {
+      geojson = await this.convertToGeoJson(src, path.join(des, 'result.geojson'))
     }
-    // else if (ext === 'kml') {
-    //   shapefile_final = `${shapefile_final}.zip`
-    //   this.kmlToShapefile(src, shapefile_des)
-    //   await this.archiveFolder(shapefile_des, shapefile_final)
-    // } else if (ext === 'kmz') {
-    //   const kml_src = path.join(process.env.TMP_DIR, 'kml', id)
-    //   await this.extractKmz(src, kml_src)
-    //   this.kmlToShapefile(kml_src, shapefile_des)
-    //   await this.archiveFolder(shapefile_des, shapefile_final)
-    // }
-    return this.uploadToGeoServer(shapefile_final, id)
-  }
-
-  uploadToGeoServer(src, datastore) {
-    const WORKSPACE = 'topp';
-    const PUBLISHSHAPEURL = `${process.env.GEOSERVER_URL}/workspaces/${WORKSPACE}/datastores/${datastore}/file.shp`;
-    const stats = fs.statSync(src);
-    const fileSizeInBytes = stats.size;
-    const readStream = fs.createReadStream(src);
-    const config = {
-      headers: {
-        Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`,
-        'Content-Type': 'application/zip',
-        Accept: 'application/json',
-        'Content-length': fileSizeInBytes
-      },
-      method: 'PUT',
-      body: readStream
-    }
-    return fetch(PUBLISHSHAPEURL, config)
+    const postgis_table = await this.loadToPostGis(geojson, id)
+    // publish to geoserver
+    return geoServerClient.request({
+      url: `workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${process.env.GEOSERVER_STORE}/featuretypes`,
+      data: {
+        featureType: {
+          name: postgis_table
+        }
+      }
+    })
   }
 }
