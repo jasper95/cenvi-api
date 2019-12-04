@@ -22,7 +22,7 @@ export default async function initializeDB(self) {
   const schema_builder = new SchemaBuilder(schema, query_wrapper)
   serviceLocator.registerService('DB', query_wrapper)
   serviceLocator.registerService('knex', query_wrapper.knex)
-  return schema_builder.setupSchema()
-    .then(() => self.log('info', 'Connected to Database [Connection: %s:%s, Name: %s]', host, port, db_name))
-    .catch(err => self.log('error', 'Error setting up schema [Error: %s]', util.inspect(err)))
+  // return schema_builder.setupSchema()
+  //   .then(() => self.log('info', 'Connected to Database [Connection: %s:%s, Name: %s]', host, port, db_name))
+  //   .catch(err => self.log('error', 'Error setting up schema [Error: %s]', util.inspect(err)))
 }

@@ -3,3 +3,4 @@ node_modules
 mnt
 .DS_Store
 build
+tmp
