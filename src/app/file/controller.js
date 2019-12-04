@@ -50,8 +50,8 @@ export default class FileController {
 
   async uploadShapefile({ files, params }) {
     const { file } = files
-    const { extension } = params
-    await this.Model.file.uploadGeoData(file.path, generateUUID(), extension)
+    const { extension, id = generateUUID() } = params
+    await this.Model.file.uploadGeoData(file.path, id, extension)
     return {
       uploaded: true
     }

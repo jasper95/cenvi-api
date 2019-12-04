@@ -3,12 +3,18 @@ import { geoServerClient } from 'utils'
 const WORKSPACE_URL = `/workspaces/${process.env.GEOSERVER_WORKSPACE}`
 const STORE_URL = `${WORKSPACE_URL}/datastores/${process.env.GEOSERVER_STORE}`
 
-export default async function initGeoserver() {
+export default async function initGeoserver(self) {
+  await self.knex.raw('CREATE EXTENSION if not exists postgis')
+  await self.knex.raw('CREATE EXTENSION if not exists postgis_topology')
   // get workspace
   const workspace = await geoServerClient.request({
-    url: WORKSPACE_URL
+    url: `${WORKSPACE_URL}?quietOnNotFound=true`
+  }).catch((err) => {
+    if (err.status === 404) {
+      return null
+    }
+    throw err
   })
-
   // check if geoserver workspace exists already
   if (!workspace) {
     // create geoserver wokspace
@@ -21,8 +27,14 @@ export default async function initGeoserver() {
 
   // get store
   const data_store = await geoServerClient.request({
-    url: STORE_URL
-  }).catch(() => null)
+    url: `${STORE_URL}`
+  }).catch((err) => {
+    if (err.status === 404) {
+      return null
+    }
+    throw err
+  })
+
   if (!data_store) {
     await geoServerClient.request({
       method: 'POST',

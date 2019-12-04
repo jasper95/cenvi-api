@@ -6,10 +6,15 @@ import {
 } from 'utils'
 import gdal from 'gdal'
 import JSZip from 'jszip'
+import unzip from 'shpjs/lib/unzip'
+import parseShp from 'shpjs/lib/parseShp'
+import proj4 from 'proj4'
+import parseDbf from 'parsedbf'
 
 export default class FileModel {
-  constructor({ DB }) {
+  constructor({ DB, knex }) {
     this.DB = DB
+    this.knex = knex
   }
 
   async moveFile(des_dir, src, des) {
@@ -95,9 +100,73 @@ export default class FileModel {
     return fs.readFileAsync(des, 'utf-8').then(e => JSON.parse(e))
   }
 
-  async unzipAndValidate(src, des, exts = []) {
+
+  async getZipGeodata(buffer, whiteList = []) {
+    const zip = unzip(buffer);
+    const names = []
+    Object.keys(zip)
+      .forEach((key) => {
+        if (key.indexOf('__MACOSX') !== -1) {
+        // continue;
+        } else if (key.slice(-3).toLowerCase() === 'shp') {
+          names.push(key.slice(0, -4));
+          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
+        } else if (key.slice(-3).toLowerCase() === 'prj') {
+          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = proj4(zip[key]);
+        } else if (key.slice(-4).toLowerCase() === 'json' || whiteList.indexOf(key.split('.').pop()) > -1) {
+          names.push(key.slice(0, -3) + key.slice(-3).toLowerCase());
+        } else if (key.slice(-3).toLowerCase() === 'dbf' || key.slice(-3).toLowerCase() === 'cpg') {
+          zip[key.slice(0, -3) + key.slice(-3).toLowerCase()] = zip[key];
+        }
+      })
+    if (!names.length) {
+      throw { success: false, message: 'no layers founds' }
+    }
+    const geojson = names.map((name) => {
+      let parsed,
+        dbf;
+      const lastDotIdx = name.lastIndexOf('.');
+      if (lastDotIdx > -1 && name.slice(lastDotIdx).indexOf('json') > -1) {
+        parsed = JSON.parse(zip[name]);
+        parsed.fileName = name.slice(0, lastDotIdx);
+      } else if (whiteList.indexOf(name.slice(lastDotIdx + 1)) > -1) {
+        parsed = zip[name];
+        parsed.fileName = name;
+      } else {
+        if (zip[`${name}.dbf`]) {
+          dbf = parseDbf(zip[`${name}.dbf`], zip[`${name}.cpg`]);
+        }
+        parsed = combine([parseShp(zip[`${name}.shp`], zip[`${name}.prj`]), dbf]);
+        parsed.fileName = name;
+      }
+      return parsed;
+    });
+    if (geojson.length === 1) {
+      return geojson[0];
+    }
+    return geojson;
+    function combine(arr) {
+      const out = {};
+      out.type = 'FeatureCollection';
+      out.features = [];
+      let i = 0;
+      const len = arr[0].length;
+      while (i < len) {
+        out.features.push({
+          type: 'Feature',
+          geometry: arr[0][i],
+          properties: arr[1][i]
+        });
+        i++;
+      }
+      return out;
+    }
+  }
+
+  async unzipAndValidate(src, des, exts = [], options = { write: true }) {
+    const src_buffer = await fs.readFileAsync(src)
     const zip = new JSZip()
-    const { files } = zip.loadAsync(src)
+    const { files } = await zip.loadAsync(src_buffer)
     const required_files = Object.keys(files).filter((e) => {
       const ext = e.split('.').pop()
       return exts.includes(ext)
@@ -105,10 +174,12 @@ export default class FileModel {
     if (required_files.length === 0) {
       throw { success: false, message: `Must contain all required extensions: ${exts.join(', ')}` }
     }
-    await Promise.map(required_files, async (file_name) => {
-      const buffer = await files[file_name].async('nodebuffer')
-      return fs.writeFileAsync(path.join(des, file_name), buffer)
-    })
+    if (options.write) {
+      await Promise.map(required_files, async (file_name) => {
+        const buffer = await files[file_name].async('nodebuffer')
+        return fs.writeFileAsync(path.join(des, file_name), buffer)
+      })
+    }
     return required_files
   }
 
@@ -122,7 +193,7 @@ export default class FileModel {
     }));
 
     // create postgis table
-    await this.knex.schema.createTableIfNotExists(table_name, (table) => {
+    await this.knex.schema.createTable(table_name, (table) => {
       table.jsonb('properties').defaultTo('{}');
       table.specificType('geom', 'geometry').notNullable();
     })
@@ -137,10 +208,10 @@ export default class FileModel {
     await fse.ensureDir(des)
     let geojson
     if (['zip', 'rar'].includes(ext)) {
-      const [shapefile_name] = await this.unzipAndValidate(src, des, ['shp'])
-      geojson = await this.convertToGeoJson(path.join(des, shapefile_name), path.join(des, 'result.geojson'))
+      const buffer = await fs.readFileAsync(src)
+      geojson = await this.getZipGeodata(buffer)
     } else if (ext === 'kmz') {
-      const [kml_name] = await this.unzipAndValidate(src, des, ['kml'])
+      const [kml_name] = await this.unzipAndValidate(src, des, ['kml'], { write: true })
       geojson = await this.convertToGeoJson(path.join(des, kml_name), path.join(des, 'result.geojson'))
     } else if (ext === 'kml') {
       geojson = await this.convertToGeoJson(src, path.join(des, 'result.geojson'))
@@ -148,6 +219,7 @@ export default class FileModel {
     const postgis_table = await this.loadToPostGis(geojson, id)
     // publish to geoserver
     return geoServerClient.request({
+      method: 'POST',
       url: `workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${process.env.GEOSERVER_STORE}/featuretypes`,
       data: {
         featureType: {
