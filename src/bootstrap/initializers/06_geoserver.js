@@ -10,7 +10,7 @@ export default async function initGeoserver(self) {
   const workspace = await geoServerClient.request({
     url: `${WORKSPACE_URL}?quietOnNotFound=true`
   }).catch((err) => {
-    if (err.status === 404) {
+    if (err.response.status === 404) {
       return null
     }
     throw err
@@ -27,9 +27,9 @@ export default async function initGeoserver(self) {
 
   // get store
   const data_store = await geoServerClient.request({
-    url: `${STORE_URL}`
+    url: `${STORE_URL}?quietOnNotFound=true`
   }).catch((err) => {
-    if (err.status === 404) {
+    if (err.response.status === 404) {
       return null
     }
     throw err
