@@ -71,10 +71,10 @@ class ShapefileModel {
     if (['zip', 'rar'].includes(ext)) {
       await this.unzipAndValidate(src, des, [])
     } if (ext === 'kmz') {
-      // await this.unzipAndValidate(src, des, ['kml'], { write: true })
-      // this.kmlToShapefile(path.join(des, 'result.kml'), path.join(des, id))
+      await this.unzipAndValidate(src, des, ['kml'], { write: true })
+      this.kmlToShapefile(path.join(des, 'doc.kml'), path.join(des, id))
     } else if (ext === 'kml') {
-      // this.kmlToShapefile(src, path.join(des, id))
+      this.kmlToShapefile(src, path.join(des, id))
     }
     // rename files
     const files = await fs.readdirAsync(des)

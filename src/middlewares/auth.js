@@ -18,7 +18,9 @@ const basic_auth_routes = {
     '/published_blog',
     '/published_blog/:id',
     '/published_album',
-    '/published_album/:id'
+    '/published_album/:id',
+    '/category',
+    '/shapefile'
   ],
   POST: [
     '/signup',
