@@ -1,9 +1,6 @@
 import gdal from 'gdal'
 import JSZip from 'jszip'
-import parseShp from 'shpjs/lib/parseShp'
-import proj4 from 'proj4'
 import fse from 'fs-extra'
-import parseDbf from 'parsedbf'
 import path from 'path'
 import archiver from 'archiver'
 import {
@@ -50,7 +47,6 @@ class ShapefileModel {
     // })
     const zip_buffer = await Promise.reduce(Object.keys(files), async (acc, file_name) => {
       const buffer = await files[file_name].async('nodebuffer')
-      const ext = file_name.split('.').pop()
       return {
         ...acc,
         [file_name]: buffer
@@ -58,7 +54,7 @@ class ShapefileModel {
     }, {})
     if (options.write) {
       await Promise.map(
-        Object.entries(zip_buffer),
+        Object.entries(zip_buffer).filter(([filename]) => !filename.includes('__MACOSX')),
         ([filename, buffer]) => fs.writeFileAsync(path.join(des, filename), buffer)
       )
     }
