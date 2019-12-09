@@ -53,7 +53,7 @@ class ShapefileModel {
 
   async packageShapefile(src, id, original_name, ext) {
     let des = path.join(process.env.TMP_DIR, id)
-    await fse.ensureDir(des)
+    await fse.ensureDir(path.join(des, 'shapefile'))
     if (['zip', 'rar'].includes(ext)) {
       des = path.join(des, 'shapefile')
       await this.unzipAndValidate(src, des, [])
@@ -69,9 +69,9 @@ class ShapefileModel {
     const files = await fs.readdirAsync(des)
     await Promise.map(
       files,
-      fname => {
-        const ext = fname.split('.').pop()
-        return fs.renameAsync(path.join(des, fname), path.join(des, `${id}.${ext}`))
+      (fname) => {
+        const extension = fname.split('.').pop()
+        return fs.renameAsync(path.join(des, fname), path.join(des, `${id}.${extension}`))
       }
     )
     const shape_path = `${des}.zip`
