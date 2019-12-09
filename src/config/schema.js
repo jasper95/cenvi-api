@@ -241,6 +241,16 @@ module.exports = {
           required: true
         },
         {
+          column_name: 'user_id',
+          type: 'uuid',
+          foreign_key: true,
+          required: true,
+          reference_table: 'user',
+          reference_column: 'id',
+          on_update: 'CASCADE',
+          on_delete: 'CASCADE'
+        },
+        {
           column_name: 'description',
           type: 'string',
           default: ''

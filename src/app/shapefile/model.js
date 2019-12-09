@@ -29,22 +29,12 @@ class ShapefileModel {
     const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
     ds.close();
     dscopy.close()
-    // const files = await fs.readdirAsync(des)
-    // return Promise.map(files, (fname) => {
-    //   const ext = fname.split('.').pop()
-    //   return fs
-    //     .renameAsync(path.join(des, fname), path.join(des, `${new_name}.${ext}`))
-    // })
   }
 
   async unzipAndValidate(src, des, exts = [], options = { write: true }) {
     const src_buffer = await fs.readFileAsync(src)
     const zip = new JSZip()
     const { files } = await zip.loadAsync(src_buffer)
-    // const required_files = Object.keys(files).filter((e) => {
-    //   const ext = e.split('.').pop()
-    //   return exts.includes(ext)
-    // })
     const zip_buffer = await Promise.reduce(Object.keys(files), async (acc, file_name) => {
       const buffer = await files[file_name].async('nodebuffer')
       return {
@@ -62,22 +52,27 @@ class ShapefileModel {
   }
 
   async packageShapefile(src, id, original_name, ext) {
-    const des = path.join(process.env.TMP_DIR, id, 'shapefile')
+    let des = path.join(process.env.TMP_DIR, id)
     await fse.ensureDir(des)
     if (['zip', 'rar'].includes(ext)) {
+      des = path.join(des, 'shapefile')
       await this.unzipAndValidate(src, des, [])
     } if (ext === 'kmz') {
       await this.unzipAndValidate(src, des, ['kml'], { write: true })
-      this.kmlToShapefile(path.join(des, 'doc.kml'), path.join(des, id))
+      this.kmlToShapefile(path.join(des, 'doc.kml'), path.join(des, 'shapefile'))
+      des = path.join(des, 'shapefile')
     } else if (ext === 'kml') {
+      path.join(des, 'shapefile')
       this.kmlToShapefile(src, path.join(des, id))
     }
     // rename files
     const files = await fs.readdirAsync(des)
     await Promise.map(
       files,
-      fname => fs
-        .renameAsync(path.join(des, fname), path.join(des, fname.replace(original_name, id)))
+      fname => {
+        const ext = fname.split('.').pop()
+        return fs.renameAsync(path.join(des, fname), path.join(des, `${id}.${ext}`))
+      }
     )
     const shape_path = `${des}.zip`
     await this.archiveFolder(des, shape_path)

@@ -18,10 +18,31 @@ export default class ShapefileController {
     await this.Model.shapefile
       .publishGeoData(shape_path, id)
     if (sld) {
+      const sld_name = sld.name.split('.').slice(0, -1).join('.')
       const sld_string = await this.Model.shapefile
         .extractSld(sld.path, id, sld.name.split('.').pop())
       await this.Model.shapefile.publishStyle(sld_string, id, original_name)
     }
     return this.DB.insert('shapefile', params)
+  }
+
+  async updateShapefile({ params, files }) {
+    const { file, sld } = files
+    const { id } = params
+    if (file) {
+      const original_name = sld.name.split('.').slice(0, -1).join('.')
+      const extension = file.name.split('.').pop()
+      const shape_path = await this.Model.shapefile
+        .packageShapefile(file.path, id, original_name, extension)
+      await this.Model.shapefile
+        .publishGeoData(shape_path, id)
+    }
+    if (sld) {
+      const sld_name = sld.name.split('.').slice(0, -1).join('.')
+      const sld_string = await this.Model.shapefile
+        .extractSld(sld.path, id, sld.name.split('.').pop())
+      await this.Model.shapefile.publishStyle(sld_string, id, sld_name)
+    }
+    return this.DB.updateById('shapefile', params)
   }
 }
