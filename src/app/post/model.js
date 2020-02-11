@@ -14,7 +14,7 @@ export default class PostModel {
       method: 'POST',
       data: {
         message: post.excerpt,
-        link: `${portal_link}/${post.slug}`,
+        link: `${portal_link}/${post.type}/${post.slug}`,
         access_token: process.env.FB_PAGE_ACCESS_TOKEN
       }
     })
