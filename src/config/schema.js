@@ -114,8 +114,13 @@ module.exports = {
     },
     {
       table_name: 'post',
-      slug: true,
       columns: [
+        {
+          column_name: 'slug',
+          type: 'string',
+          required: true,
+          unique: true
+        },
         {
           column_name: 'name',
           type: 'string',
