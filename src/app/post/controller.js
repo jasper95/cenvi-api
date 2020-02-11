@@ -7,8 +7,11 @@ export default class PostController {
     this.Model = Model
   }
 
-  async createPost({ params, headers }) {
-    const response = await this.DB.insert('post', params)
+  async createPost({ params, headers, user }) {
+    const response = await this.DB.insert('post', {
+      ...params,
+      user_id: user.id
+    })
     await this.Model.post.createFacebookPost(response, getPortaLink(headers))
     return response
   }
