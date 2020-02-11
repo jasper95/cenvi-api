@@ -23,7 +23,7 @@ export default class ShapefileController {
         .extractSld(sld.path, id, sld.name.split('.').pop())
       await this.Model.shapefile.publishStyle(sld_string, id, original_name)
     }
-    return this.DB.insert('shapefile', params)
+    return this.DB.insert('shapefile', { ...params, is_public: Boolean(params.is_public === 'true') })
   }
 
   async updateShapefile({ params, files }) {
@@ -43,6 +43,6 @@ export default class ShapefileController {
         .extractSld(sld.path, id, sld.name.split('.').pop())
       await this.Model.shapefile.publishStyle(sld_string, id, sld_name)
     }
-    return this.DB.updateById('shapefile', params)
+    return this.DB.updateById('shapefile', { ...params, is_public: Boolean(params.is_public === 'true') })
   }
 }

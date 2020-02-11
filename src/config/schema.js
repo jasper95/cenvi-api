@@ -113,7 +113,7 @@ module.exports = {
       ]
     },
     {
-      table_name: 'blog',
+      table_name: 'post',
       slug: true,
       columns: [
         {
@@ -139,6 +139,7 @@ module.exports = {
         {
           column_name: 'image_url',
           type: 'string',
+          default: '',
           required: true
         },
         {
@@ -161,6 +162,11 @@ module.exports = {
           reference_column: 'id',
           on_update: 'CASCADE',
           on_delete: 'CASCADE'
+        },
+        {
+          type: 'string',
+          column_name: 'type',
+          default: 'blog'
         }
       ]
     },
@@ -254,6 +260,11 @@ module.exports = {
           column_name: 'description',
           type: 'string',
           default: ''
+        },
+        {
+          column_name: 'is_public',
+          type: 'boolean',
+          default: false
         },
         {
           column_name: 'tags',
