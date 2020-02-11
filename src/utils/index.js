@@ -135,3 +135,8 @@ export const whereAnd = (query, filters) => {
       return q
     }, query.where(...transformArgs(first)))
 }
+
+export function getPortaLink(headers) {
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+  return `${protocol}://${headers.referer.split('/')[2]}`
+}
