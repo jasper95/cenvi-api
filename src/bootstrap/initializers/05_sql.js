@@ -7,8 +7,9 @@ import util from 'util'
 export default async function initializeViews(self) {
   const knex = serviceLocator.get('knex')
   await Promise
-    .mapSeries(views, (e) => {
+    .mapSeries(views, async (e) => {
       self.log('info', 'Initialize View  [name: %s]', e.name)
+      await knex.raw(`drop view if exists ${e.name} CASCADE`)
       return knex.raw(getViewQuery(e))
     })
     .then(() => self.log('info', 'Views successfully initialized'))
