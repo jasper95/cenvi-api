@@ -10,11 +10,16 @@ export default class PostModel {
   }
 
   async createFacebookPost(post, portal_link) {
+    const singular_types = ['news']
+    let { type } = post
+    if (!singular_types.includes(type)) {
+      type = `${type}s`
+    }
     return this.fb_client.request({
       method: 'POST',
       data: {
         message: post.excerpt,
-        link: `${portal_link}/${post.type}/${post.slug}`,
+        link: `${portal_link}/${type}/${post.slug}`,
         access_token: process.env.FB_PAGE_ACCESS_TOKEN
       }
     })
