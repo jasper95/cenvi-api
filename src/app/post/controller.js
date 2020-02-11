@@ -9,7 +9,7 @@ export default class PostController {
   }
 
   async createPost({ params, headers, user }) {
-    const slug = `${slugify(params.title)}-${new Date().getTime()}`.toLowerCase()
+    const slug = `${slugify(params.name)}-${new Date().getTime()}`.toLowerCase()
     const response = await this.DB.insert('post', {
       ...params,
       slug,
