@@ -1,11 +1,15 @@
 export default class MetaTagsController {
-  constructor({ DB, knex, Model }) {
+  constructor({
+    DB, knex, Model, serviceLocator
+  }) {
     this.DB = DB
     this.knex = knex
     this.Model = Model
+    this.serviceLocator = serviceLocator
   }
 
   async getMetaTags({ params, userAgent }, res, next) {
+    const log = this.serviceLocator.get('log')
     const { slug } = params
     const post = await this.DB.find('post', slug, [], 'slug')
     const singular_types = ['news']
@@ -14,6 +18,7 @@ export default class MetaTagsController {
       type = `${type}s`
     }
     if (userAgent().test(/bot|crawler|spider|crawling/i)) {
+      log('info', 'Bot detected')
       const body = `
         <html>
           <head>
@@ -34,6 +39,7 @@ export default class MetaTagsController {
       res.end();
       return
     }
+    log('info', 'Browser detected')
     res.redirect(301, [process.env.PORTAL_LINK, type, slug], next);
   }
 }
