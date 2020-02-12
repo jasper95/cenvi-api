@@ -1,5 +1,5 @@
 const routes = {
-  post: [
+  get: [
     {
       url: '/meta/:slug',
       handler: 'getMetaTags'
