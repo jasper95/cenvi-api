@@ -9,7 +9,7 @@ export default class MetaTagsController {
   }
 
   async getMetaTags({ params, headers }, res, next) {
-    const log = this.serviceLocator.get('log')
+    const log = this.serviceLocator.get('logger')
     const { slug } = params
     const post = await this.DB.find('post', slug, [], 'slug')
     const singular_types = ['news']
