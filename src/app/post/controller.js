@@ -1,4 +1,3 @@
-import { getPortaLink } from 'utils'
 import slugify from 'slugify'
 
 export default class PostController {
@@ -8,7 +7,7 @@ export default class PostController {
     this.Model = Model
   }
 
-  async createPost({ params, headers, user }) {
+  async createPost({ params, user }) {
     const slug = `${slugify(params.name)}-${new Date().getTime()}`.toLowerCase()
     const response = await this.DB.insert('post', {
       ...params,

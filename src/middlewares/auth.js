@@ -18,6 +18,8 @@ const basic_auth_routes = {
   GET: [
     '/base/published_blog',
     '/base/published_blog/:id',
+    '/base/published_news',
+    '/base/published_news/:id',
     '/base/published_album',
     '/base/published_album/:id',
     '/base/category',

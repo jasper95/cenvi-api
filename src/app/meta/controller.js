@@ -40,6 +40,6 @@ export default class MetaTagsController {
       res.end();
       return
     }
-    res.redirect(301, [process.env.PORTAL_LINK, type, slug], next);
+    res.redirect([process.env.PORTAL_LINK, type, slug], next);
   }
 }
