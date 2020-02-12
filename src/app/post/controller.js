@@ -16,7 +16,7 @@ export default class PostController {
       user_id: user.id,
       is_posted: params.status === 'Published' || dayjs(params.published_date).isSame(new Date().toISOString(), 'date')
     })
-    if (!response.is_posted) {
+    if (response.is_posted) {
       await this.Model.post.createFacebookPost(response, 'https://cenvi-api.herokuapp.com')
     }
     return response
