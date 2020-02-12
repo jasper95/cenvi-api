@@ -169,6 +169,11 @@ module.exports = {
           on_delete: 'CASCADE'
         },
         {
+          column_name: 'is_posted',
+          type: 'boolean',
+          default: false
+        },
+        {
           type: 'string',
           column_name: 'type',
           default: 'blog'

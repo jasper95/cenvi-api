@@ -4,6 +4,12 @@ const routes = {
       url: '/post',
       handler: 'createPost'
     }
+  ],
+  put: [
+    {
+      url: '/post',
+      handler: 'updatePost'
+    }
   ]
 }
 export default routes
