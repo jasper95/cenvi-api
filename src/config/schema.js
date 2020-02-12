@@ -292,6 +292,26 @@ module.exports = {
           on_delete: 'CASCADE'
         }
       ]
+    },
+    {
+      table_name: 'resource',
+      columns: [
+        {
+          column_name: 'name',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'description',
+          type: 'string',
+          required: true
+        },
+        {
+          column_name: 'file_path',
+          type: 'string',
+          required: true
+        }
+      ]
     }
   ]
 }
