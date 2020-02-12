@@ -18,7 +18,7 @@ export default class MetaTagsController {
       <html>
         <head>
           <meta property="og:type" content="article" />
-          <meta property="og:url": content="${[process.env.PORTAL_LINK, type, slug].join('/')}"/>
+          <meta property="og:url": content="${['https://cenvi-api.herokuapp.com', 'meta', slug].join('/')}"/>
           <meta property="og:title" content="${post.title}" />
           <meta property="og:description" content="${post.excerpt}" />
           <meta property="og:image" content="${[process.env.STATIC_URL, post.image_url].join('/')}" />
