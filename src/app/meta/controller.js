@@ -17,8 +17,9 @@ export default class MetaTagsController {
     if (!singular_types.includes(type)) {
       type = `${type}s`
     }
-    if (userAgent().test(/bot|crawler|spider|crawling/i)) {
-      log('info', 'Bot detected')
+    const ua = userAgent()
+    log('info', 'User agent: %s', ua)
+    if (ua.match(/bot|crawler|spider|crawling|facebookexternalhit/i)) {
       const body = `
         <html>
           <head>
@@ -39,7 +40,6 @@ export default class MetaTagsController {
       res.end();
       return
     }
-    log('info', 'Browser detected')
     res.redirect(301, [process.env.PORTAL_LINK, type, slug], next);
   }
 }
