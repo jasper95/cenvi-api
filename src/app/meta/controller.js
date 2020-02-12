@@ -14,9 +14,9 @@ export default class MetaTagsController {
     if (!singular_types.includes(type)) {
       type = `${type}s`
     }
+    res.header('Content-Type', 'text/html');
     res.send(
       `
-      <!DOCTYPE html>
       <html>
         <head>
           <meta property="og:type" content="article" />
@@ -25,6 +25,7 @@ export default class MetaTagsController {
           <meta property="og:description" content="${post.excerpt}" />
           <meta property="og:image" content="${[process.env.STATIC_URL, post.image_url].join('/')}" />
         </head>
+        <body></body>
       </html>
     `
     )
