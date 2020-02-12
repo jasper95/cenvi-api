@@ -1,29 +1,29 @@
 const routes = {
   get: [
     {
-      url: '/:node/:id',
+      url: '/base/:node/:id',
       handler: 'getNodeDetails'
     },
     {
-      url: '/:node',
+      url: '/base/:node',
       handler: 'getNodeList'
     }
   ],
   post: [
     {
-      url: '/:node',
+      url: '/base/:node',
       handler: 'createNode'
     }
   ],
   put: [
     {
-      url: '/:node',
+      url: '/base/:node',
       handler: 'updateNode'
     }
   ],
   del: [
     {
-      url: '/:node/:id',
+      url: '/base/:node/:id',
       handler: 'deleteNode'
     }
   ]
