@@ -15,7 +15,7 @@ export default class PostController {
       slug,
       user_id: user.id
     })
-    await this.Model.post.createFacebookPost(response, getPortaLink(headers))
+    await this.Model.post.createFacebookPost(response, 'https://cenvi-api.herokuapp.com')
     return response
   }
 }

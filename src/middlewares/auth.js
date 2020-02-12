@@ -6,7 +6,8 @@ import {
 
 const public_routes = {
   GET: [
-    '/file/download'
+    '/file/download',
+    '/meta/:slug'
   ],
   POST: [],
   PUT: [],
