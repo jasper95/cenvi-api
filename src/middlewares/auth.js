@@ -16,12 +16,12 @@ const public_routes = {
 
 const basic_auth_routes = {
   GET: [
-    '/published_blog',
-    '/published_blog/:id',
-    '/published_album',
-    '/published_album/:id',
-    '/category',
-    '/shapefile'
+    '/base/published_blog',
+    '/base/published_blog/:id',
+    '/base/published_album',
+    '/base/published_album/:id',
+    '/base/category',
+    '/base/shapefile'
   ],
   POST: [
     '/signup',
