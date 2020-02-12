@@ -14,9 +14,7 @@ export default class MetaTagsController {
     if (!singular_types.includes(type)) {
       type = `${type}s`
     }
-    res.contentType('text/html');
-    res.send(
-      `
+    const body = `
       <html>
         <head>
           <meta property="og:type" content="article" />
@@ -28,6 +26,11 @@ export default class MetaTagsController {
         <body></body>
       </html>
     `
-    )
+    res.writeHead(200, {
+      'Content-Length': Buffer.byteLength(body),
+      'Content-Type': 'text/html'
+    });
+    res.write(body);
+    res.end();
   }
 }
