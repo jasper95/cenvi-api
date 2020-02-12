@@ -8,7 +8,7 @@ export default class MetaTagsController {
     this.serviceLocator = serviceLocator
   }
 
-  async getMetaTags({ params, userAgent }, res, next) {
+  async getMetaTags({ params, headers }, res, next) {
     const log = this.serviceLocator.get('log')
     const { slug } = params
     const post = await this.DB.find('post', slug, [], 'slug')
@@ -17,7 +17,7 @@ export default class MetaTagsController {
     if (!singular_types.includes(type)) {
       type = `${type}s`
     }
-    const ua = userAgent()
+    const ua = headers['user-agent']
     log('info', 'User agent: %s', ua)
     if (ua.match(/bot|crawler|spider|crawling|facebookexternalhit/i)) {
       const body = `
