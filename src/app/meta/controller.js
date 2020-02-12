@@ -14,7 +14,7 @@ export default class MetaTagsController {
     if (!singular_types.includes(type)) {
       type = `${type}s`
     }
-    res.header('Content-Type', 'text/html');
+    res.contentType('text/html');
     res.send(
       `
       <html>
