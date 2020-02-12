@@ -6,6 +6,8 @@ export default class MetaTagsController {
   }
 
   async getMetaTags({ params, userAgent }, res, next) {
+    const { slug } = params
+    const post = await this.DB.find('post', slug, [], 'slug')
     const singular_types = ['news']
     let { type } = post
     if (!singular_types.includes(type)) {
@@ -15,8 +17,6 @@ export default class MetaTagsController {
       res.redirect(301, [process.env.PORTAL_LINK, type, slug], next);
       return
     }
-    const { slug } = params
-    const post = await this.DB.find('post', slug, [], 'slug')
     const body = `
       <html>
         <head>
