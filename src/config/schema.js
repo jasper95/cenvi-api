@@ -310,6 +310,11 @@ module.exports = {
           column_name: 'file_path',
           type: 'string',
           required: true
+        },
+        {
+          column_name: 'format',
+          type: 'string',
+          required: true
         }
       ]
     }
