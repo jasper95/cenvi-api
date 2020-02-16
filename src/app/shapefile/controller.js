@@ -1,3 +1,9 @@
+import xmldom from 'xmldom'; // 'xmldom' doesn't 'export' the DOMParser
+import WMSCapabilities from 'wms-capabilities';
+import get from 'lodash/get'
+import { geoServerClient } from '../../utils'
+
+
 export default class ShapefileController {
   constructor({ DB, knex, Model }) {
     this.DB = DB
@@ -44,5 +50,12 @@ export default class ShapefileController {
       await this.Model.shapefile.publishStyle(sld_string, id, sld_name)
     }
     return this.DB.updateById('shapefile', { ...params, is_public: Boolean(params.is_public === 'true') })
+  }
+
+  getBoundingBox({ params }) {
+    return geoServerClient({
+      baseURL: 'http://202.92.153.55/geoserver',
+      url: `/wms?service=WMS&layers=${process.env.GEOSERVER_WORKSPACE}:${params.id}&request=GetCapabilities`
+    }).then(e => new WMSCapabilities(e, xmldom.DOMParser).toJSON()).then(e => get(e, 'Capability.Layer.EX_GeographicBoundingBox'))
   }
 }

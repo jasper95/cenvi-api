@@ -1,4 +1,10 @@
 const routes = {
+  get: [
+    {
+      url: '/shapefile/:id/bbox',
+      handler: 'getBoundingBox'
+    }
+  ],
   post: [
     {
       url: '/shapefile',

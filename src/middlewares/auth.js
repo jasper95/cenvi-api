@@ -24,6 +24,7 @@ const basic_auth_routes = {
     '/base/published_album/:id',
     '/base/category',
     '/base/shapefile',
+    '/shapefile/:id/bbox',
     '/base/resource'
   ],
   POST: [
