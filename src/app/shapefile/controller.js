@@ -55,7 +55,7 @@ export default class ShapefileController {
   getBoundingBox({ params }) {
     return geoServerClient({
       baseURL: 'http://202.92.153.55/geoserver',
-      url: `/wms?service=WMS&layers=${process.env.GEOSERVER_WORKSPACE}:${params.id}&request=GetCapabilities`
-    }).then(e => new WMSCapabilities(e, xmldom.DOMParser).toJSON()).then(e => get(e, 'Capability.Layer.EX_GeographicBoundingBox'))
+      url: `/wms?service=WMS&layers=${process.env.GEOSERVER_WORKSPACE}:${params.id}&request=GetCapabilities&srs=4326`
+    }).then(e => new WMSCapabilities(e, xmldom.DOMParser).toJSON()).then(e => get(e, 'Capability.Layer'))
   }
 }
