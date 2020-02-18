@@ -9,12 +9,18 @@ export default class BaseController {
 
   async getNodeList({ params }) {
     const {
-      node, fields = [], size = 10, page = 1, ...other_params
+      node,
+      fields = [],
+      sort = [{ column: 'created_date', direction: 'desc' }],
+      page,
+      size,
+      search,
+      ...other_params
     } = params
-    return this.DB
-      .filter(node, other_params, fields)
-      .limit(size)
-      .offset(size * (page - 1))
+    const table_name = node.replace(/-/g, '_')
+    return this.Model.base.filter(table_name, other_params, {
+      fields, sort, pagination: { page, size }, search
+    })
   }
 
   async getNodeDetails({ params }) {
