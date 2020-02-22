@@ -3,13 +3,16 @@ FROM node:10.15-alpine
 
 WORKDIR /var/app
 
-COPY ./package.json /var/app/package.json
-RUN npm install
+COPY package*.json ./
+
+RUN npm install -g pm2
+
+RUN apk add --no-cache make gcc g++ python && \
+  npm install && \
+  apk del make gcc g++ python
 
 COPY ./ /var/app
 
-ENV PORT 5000
-# ENV NODE_ENV development
-EXPOSE 5000
+RUN npm run build 
 
 CMD npm start
