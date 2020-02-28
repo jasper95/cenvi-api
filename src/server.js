@@ -32,5 +32,5 @@ server.use(auth);
 (async () => {
   await bootstrap({ log, server })
   const message = `Application starting in ${ENV} environment on http://${os.hostname()}:${PORT}`
-  server.listen(PORT, () => logger.info(message))
+  server.listen(PORT, '0.0.0.0', () => logger.info(message))
 })()
