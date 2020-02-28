@@ -19,9 +19,8 @@ const geoServerClient = axios.create({
   headers: {
     Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`
   },
-  baseURL: process.env.GEOSERVER_URL
+  baseURL: `${process.env.GEOSERVER_URL}/rest`
 })
-console.log('process.env.GEOSERVER_URL', process.env.GEOSERVER_URL)
 geoServerClient.interceptors.response.use(response => response.data, err => Promise.reject(err))
 
 export { geoServerClient }
