@@ -1,5 +1,5 @@
 
-FROM node-gdal
+FROM geodatagouv/node-gdal
 
 WORKDIR /var/app
 
