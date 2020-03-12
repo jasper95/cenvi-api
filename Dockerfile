@@ -5,7 +5,7 @@ WORKDIR /var/app
 
 COPY package*.json ./
 
-RUN yarn add -g pm2
+RUN npm install -g pm2
 
 RUN yarn add gdal --build-from-source --shared_gdal
 
