@@ -5,18 +5,16 @@ WORKDIR /var/app
 
 COPY package*.json ./
 
-RUN npm install -g pm2
+RUN yarn add -g pm2
 
-RUN apk add --no-cache bash make gcc g++ python
+RUN yarn add gdal --build-from-source --shared_gdal
 
-RUN npm install gdal --build-from-source --shared_gdal
-
-RUN npm install
+RUN yarn
 
 RUN apk del make gcc g++ python
 
 COPY ./ /var/app
 
-RUN npm run build 
+RUN yarn build 
 
-CMD npm start
+CMD yarn start
