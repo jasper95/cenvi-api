@@ -3,7 +3,8 @@ FROM geodatagouv/node-gdal
 
 WORKDIR /var/app
 
-COPY package*.json ./
+COPY package.json ./
+COPY yarn.lock ./
 
 RUN npm install -g pm2
 
