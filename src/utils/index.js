@@ -17,7 +17,7 @@ global.fetch = fetch
 
 const geoServerClient = axios.create({
   headers: {
-    Authorization: `Basic ${Buffer.from('admin:geoserver').toString('base64')}`
+    Authorization: `Basic ${Buffer.from(`${process.env.GEOESERVER_USERNAME}:${process.env.GEOSERVER_PASSWORD}`).toString('base64')}`
   },
   baseURL: `${process.env.GEOSERVER_URL}/rest`
 })
