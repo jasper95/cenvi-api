@@ -17,7 +17,7 @@ export default class PostController {
       is_posted: params.status === 'Published' || dayjs(params.published_date).isSame(new Date().toISOString(), 'date')
     })
     if (response.is_posted) {
-      await this.Model.post.createFacebookPost(response, 'https://cenvi-api.herokuapp.com')
+      await this.Model.post.createFacebookPost(response, [process.env.PORTAL_LINK, 'api'].join('/'))
     }
     return response
   }
@@ -29,7 +29,7 @@ export default class PostController {
       is_posted: params.status === 'Published' || dayjs(params.published_date).isSame(new Date().toISOString(), 'date')
     })
     if (params.is_posted && !old.is_posted) {
-      await this.Model.post.createFacebookPost(response, 'https://cenvi-api.herokuapp.com')
+      await this.Model.post.createFacebookPost(response, [process.env.PORTAL_LINK, 'api'].join('/'))
     }
     return response
   }
