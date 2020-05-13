@@ -23,7 +23,10 @@ export default class FileModel {
       await this.DB.insert('photo', { file_path: file_des })
       return file_des
     }
-    return this.moveFile(path.join(process.env.MOUNT_DIR, entity), file.path, file_des);
+    return this.moveFile(
+      process.env.MOUNT_DIR, file.path,
+      path.join(process.env.MOUNT_DIR, entity, file_des)
+    );
   }
 
   storeChunk(file_path, uuid, index, chunk_num) {
