@@ -42,9 +42,9 @@ export default class FileController {
   async simpleUpload({ files, params }) {
     const { file } = files
     const { file_path } = params
-    await this.Model.file.moveUploadedFile(file, file_path)
+    const final_path = await this.Model.file.moveUploadedFile(file, file_path)
     return {
-      file_path
+      file_path: final_path
     }
   }
 
@@ -59,16 +59,16 @@ export default class FileController {
 
   async uploadFile({ files, params }) {
     const {
-      uuid, partindex, totalparts, filename
+      uuid, partindex, totalparts, filename, entity
     } = params
     const { file } = files
     file.name = filename;
     const response = {
       success: false
     };
-    await this.Model.file.storeChunk(file.path, uuid, partindex, totalparts)
+    await this.Model.file.storeChunk(file.path, `${entity}/${uuid}`, partindex, totalparts)
     if (partindex >= totalparts - 1) {
-      const file_path = await this.Model.file.combineChunks(filename, uuid)
+      const file_path = await this.Model.file.combineChunks(filename, `${entity}/${uuid}`)
       response.file_path = file_path
       response.id = uuid
       await this.DB.insert('photo', {

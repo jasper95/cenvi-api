@@ -61,7 +61,7 @@ export default class FileModel {
       }
       appendToStream(des_stream, chunk_dir, file_names, 0)
     })
-    const file_path = path.join('uploads', file_des.split('/').slice(1).join('/'))
+    const file_path = file_des.split('/').slice(1).join('/')
     if (process.env.UPLOAD_TO_S3) {
       const blob = await fs.readFileAsync(file_des)
       await uploadToS3(blob, file_path)
