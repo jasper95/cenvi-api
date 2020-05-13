@@ -41,10 +41,10 @@ export default class FileController {
 
   async simpleUpload({ files, params }) {
     const { file } = files
-    const { file_path } = params
-    const final_path = await this.Model.file.moveUploadedFile(file, file_path)
+    const { file_path, entity } = params
+    await this.Model.file.moveUploadedFile(file, file_path, entity)
     return {
-      file_path: final_path
+      file_path
     }
   }
 
