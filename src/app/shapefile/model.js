@@ -24,6 +24,8 @@ class ShapefileModel {
 
 
   async kmlToShapefile(src, des) {
+    const logger = this.serviceLocator.get('logger')
+    logger.info('ShapefileModel - kmlToShapefile')
     const ds = gdal.open(src)
     const driver = gdal.drivers.get('ESRI Shapefile')
     const dscopy = driver.createCopy(des, ds, { COMPRESS: 'NONE', TILED: 'NONE' })
@@ -32,6 +34,8 @@ class ShapefileModel {
   }
 
   async unzipAndValidate(src, des, exts = [], options = { write: true }) {
+    const logger = this.serviceLocator.get('logger')
+    logger.info('ShapefileModel - unzipAndValidate')
     const src_buffer = await fs.readFileAsync(src)
     const zip = new JSZip()
     const { files } = await zip.loadAsync(src_buffer)
@@ -52,6 +56,7 @@ class ShapefileModel {
   }
 
   async packageShapefile(src, id, original_name, ext) {
+    const logger = this.serviceLocator.get('logger')
     let des = path.join(process.env.TMP_DIR, id)
     await fse.ensureDir(path.join(des, 'shapefile'))
     if (['zip', 'rar'].includes(ext)) {
@@ -67,6 +72,7 @@ class ShapefileModel {
     }
     // rename files
     const files = await fs.readdirAsync(des)
+    logger.info('Renaming files')
     await Promise.map(
       files,
       (fname) => {
@@ -94,6 +100,8 @@ class ShapefileModel {
   }
 
   archiveFolder(src, des) {
+    logger.info('ShapefileModel - archiveFolder')
+    const logger = this.serviceLocator.get('logger')
     const zip = archiver('zip');
     const output = fs.createWriteStream(des);
     return new Promise((resolve, reject) => {
