@@ -47,12 +47,12 @@ export const generateHash = (password, salt) => crypto
   .update(password)
   .digest('hex')
 
-const proxyHandler = (targetValue, { prototype, target }, ...args) => {
+const proxyHandler = (targetValue, { prototype, target, ctx }, ...args) => {
   const log = serviceLocator.get('logger')
   if (!prototype.includes('_')) {
     log('info', '%s - %s Params: %s', target.constructor.name, prototype, util.inspect(args))
   }
-  return targetValue.apply(target, args)
+  return targetValue.apply(ctx, args)
 }
 
 export const selectJsonObject = (fields, alias) => {
@@ -74,7 +74,9 @@ export const createProxy = (object, cb = proxyHandler) => {
     get(target, prototype, receiver) {
       const targetValue = Reflect.get(target, prototype, receiver)
       if (prototype in Object.getPrototypeOf(target) && typeof targetValue === 'function') {
-        return (...args) => cb(targetValue, { target, prototype }, ...args)
+        return function (...args) {
+          return cb(targetValue, { target, prototype, ctx: this }, ...args)
+        }
       }
       return targetValue
     }

@@ -33,5 +33,5 @@ server.use(auth);
   await bootstrap({ log, server })
   logger.info('Fuck it')
   const message = `Application starting in ${ENV} environment on http://${os.hostname()}:${PORT}`
-  server.listen(process.env.PORT, () => logger.info(message))
+  server.listen(PORT, () => logger.info(message))
 })()
