@@ -13,7 +13,8 @@ export default class ShapefileController {
 
   async createShapefile({ params, user, files }) {
     const {
-      id
+      id,
+      tags = '',
     } = params
     const { file, sld } = files
     params.user_id = user.id
@@ -29,12 +30,12 @@ export default class ShapefileController {
         .extractSld(sld.path, id, sld.name.split('.').pop())
       await this.Model.shapefile.publishStyle(sld_string, id, original_name)
     }
-    return this.DB.insert('shapefile', { ...params, is_public: Boolean(params.is_public === 'true') })
+    return this.DB.insert('shapefile', { ...params, tags: tags.split(','), is_public: Boolean(params.is_public === 'true') })
   }
 
   async updateShapefile({ params, files }) {
     const { file, sld } = files
-    const { id } = params
+    const { id, tags = '', } = params
     if (file) {
       const original_name = sld.name.split('.').slice(0, -1).join('.')
       const extension = file.name.split('.').pop()
@@ -49,7 +50,7 @@ export default class ShapefileController {
         .extractSld(sld.path, id, sld.name.split('.').pop())
       await this.Model.shapefile.publishStyle(sld_string, id, sld_name)
     }
-    return this.DB.updateById('shapefile', { ...params, is_public: Boolean(params.is_public === 'true') })
+    return this.DB.updateById('shapefile', { ...params, tags: tags.split(','), is_public: Boolean(params.is_public === 'true') })
   }
 
   getBoundingBox({ params }) {
