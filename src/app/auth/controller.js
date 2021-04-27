@@ -20,6 +20,26 @@ export default class UserController {
     return user
   }
 
+  async validateToken({ params }) {
+    const { token, type: type_param } = params
+    try {
+      const { id, type, expiry, user_id } = jwt.verify(token, process.env.AUTH_SECRET)
+      const record = await this.DB.find('token', id)
+      if (type !== type_param || !record) {
+        throw { success: false, message: 'Invalid Token'}
+      }
+      if (expiry && isAfter(new Date(expiry), new Date())) {
+        throw { success: false, message: 'Token expired'}
+      }
+      if (record?.used) {
+        throw { success: false, message: 'Token Already used'}
+      }
+      return { success: true }
+    } catch (err) {
+      throw { success: false, message: 'Invalid Token' }
+    }
+  }
+
   async signup({ params }) {
     // validate email
     const [user_exists] = await this.Model.base.validateUnique('user', { email: params.email })
