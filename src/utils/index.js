@@ -19,7 +19,9 @@ const geoServerClient = axios.create({
   headers: {
     Authorization: `Basic ${Buffer.from(`${process.env.GEOSERVER_USERNAME}:${process.env.GEOSERVER_PASSWORD}`).toString('base64')}`
   },
-  baseURL: `${process.env.GEOSERVER_URL}/rest`
+  baseURL: `${process.env.GEOSERVER_URL}/rest`,
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
 })
 geoServerClient.interceptors.response.use(response => response.data, err => Promise.reject(err))
 
