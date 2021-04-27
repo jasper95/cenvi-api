@@ -119,16 +119,14 @@ class ShapefileModel {
     })
   }
 
-  async publishStyle(sld_string, id, original_name) {
-    const sld = sld_string
-      .replace(/<\?xml.+\?>|<!DOCTYPE.+]>/g, '')
-      .replace(new RegExp(`>${original_name}</`, 'g'), `>${id}</`).trim()
+  async publishStyle(sld_path, id) {
     await geoServerClient.request({
       method: 'POST',
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles?name=${id}`,
-      data: sld,
+      data: fs.createReadStream(sld_path),
       headers: {
-        'Content-Type': 'application/vnd.ogc.sld+xml'
+        'Content-Type': 'application/vnd.ogc.sld+xml',
+        'Content-length': shape_stat.size
       }
     })
     await geoServerClient.request({
