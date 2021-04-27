@@ -25,10 +25,7 @@ export default class ShapefileController {
     await this.Model.shapefile
       .publishGeoData(shape_path, id)
     if (sld) {
-      const sld_name = sld.name.split('.').slice(0, -1).join('.')
-      const sld_string = await this.Model.shapefile
-        .extractSld(sld.path, id, sld.name.split('.').pop())
-      await this.Model.shapefile.publishStyle(sld_string, id, original_name)
+      await this.Model.shapefile.publishStyle(sld.path, id)
     }
     return this.DB.insert('shapefile', { ...params, tags: tags.split(','), is_public: Boolean(params.is_public === 'true') })
   }
