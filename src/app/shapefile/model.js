@@ -51,7 +51,7 @@ class ShapefileModel {
     return zip_buffer
   }
 
-  async packageShapefile(src, id, original_name, ext) {
+  async packageShapefile(src, id, ext) {
     let des = path.join(process.env.TMP_DIR, id)
     await fse.ensureDir(path.join(des, 'shapefile'))
     if (['zip', 'rar'].includes(ext)) {
@@ -143,6 +143,19 @@ class ShapefileModel {
         'Content-Type': 'application/xml'
       },
       method: 'PUT'
+    })
+  }
+
+  async updateStyle(sld_path, id) {
+    const shape_stat = await fs.statAsync(sld_path)
+    await geoServerClient.request({
+      method: 'PUT',
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${id}`,
+      data: fs.createReadStream(sld_path),
+      headers: {
+        'Content-Type': 'application/vnd.ogc.se+xml',
+        'Content-length': shape_stat.size
+      }
     })
   }
 }

@@ -18,10 +18,9 @@ export default class ShapefileController {
     } = params
     const { file, sld } = files
     params.user_id = user.id
-    const original_name = file.name.split('.').slice(0, -1).join('.')
     const extension = file.name.split('.').pop()
     const shape_path = await this.Model.shapefile
-      .packageShapefile(file.path, id, original_name, extension)
+      .packageShapefile(file.path, id, extension)
     await this.Model.shapefile
       .publishGeoData(shape_path, id)
     if (sld) {
@@ -34,15 +33,14 @@ export default class ShapefileController {
     const { file, sld } = files
     const { id, tags = '', } = params
     if (file) {
-      const original_name = sld.name.split('.').slice(0, -1).join('.')
       const extension = file.name.split('.').pop()
       const shape_path = await this.Model.shapefile
-        .packageShapefile(file.path, id, original_name, extension)
+        .packageShapefile(file.path, id, extension)
       await this.Model.shapefile
         .publishGeoData(shape_path, id)
     }
     if (sld) {
-      await this.Model.shapefile.publishStyle(sld.path, id)
+      await this.Model.shapefile.updateStyle(sld.path, id)
     }
     return this.DB.updateById('shapefile', { ...params, tags: tags.split(','), is_public: Boolean(params.is_public === 'true') })
   }
