@@ -126,7 +126,7 @@ class ShapefileModel {
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles?name=${id}`,
       data: fs.createReadStream(sld_path),
       headers: {
-        'Content-Type': 'application/vnd.ogc.sld+xml',
+        'Content-Type': 'application/vnd.ogc.se+xml',
         'Content-length': shape_stat.size
       }
     })
