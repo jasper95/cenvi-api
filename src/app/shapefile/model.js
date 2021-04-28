@@ -120,6 +120,7 @@ class ShapefileModel {
   }
 
   async publishStyle(sld_path, id) {
+    const shape_stat = await fs.statAsync(sld_path)
     await geoServerClient.request({
       method: 'POST',
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles?name=${id}`,
