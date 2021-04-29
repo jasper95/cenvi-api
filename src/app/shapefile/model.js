@@ -151,7 +151,7 @@ class ShapefileModel {
     const shape_stat = await fs.statAsync(sld_path)
     await geoServerClient.request({
       method: 'PUT',
-      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${id}`,
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${id}?raw=true`,
       data: fs.createReadStream(sld_path),
       headers: {
         'Content-Type': 'application/vnd.ogc.se+xml',
