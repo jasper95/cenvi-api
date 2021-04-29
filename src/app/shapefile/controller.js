@@ -45,6 +45,12 @@ export default class ShapefileController {
     return this.DB.updateById('shapefile', { ...params, tags: tags.split(','), is_public: Boolean(params.is_public === 'true') })
   }
 
+  async deleteShapefile({ params }) {
+    const { node, id } = params
+    await this.Model.deleteShapefile(id);
+    return this.DB.deleteById(node, params)
+  }
+
   getBoundingBox({ params }) {
     return geoServerClient({
       baseURL: process.env.GEOSERVER_URL,

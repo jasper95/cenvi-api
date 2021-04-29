@@ -16,6 +16,12 @@ const routes = {
       url: '/shapefile',
       handler: 'updateShapefile'
     }
+  ],
+  del: [
+    {
+      url: '/shapefile',
+      handler: 'deleteShapefile'
+    }
   ]
 }
 export default routes

@@ -158,6 +158,24 @@ class ShapefileModel {
       }
     })
   }
+
+  async deleteShapefile(id) {
+    await geoServerClient.request({
+      method: 'DELETE',
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${id}`,
+    })
+    const styleId = `${process.env.GEOSERVER_WORKSPACE}:${id}`
+    const styleExist = await geoServerClient.request({
+      method: 'GET',
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}`,
+    })
+    if(styleExist) {
+      await geoServerClient.request({
+        method: 'DELETE',
+        url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}`,
+      })
+    }
+  }
 }
 
 export default ShapefileModel
