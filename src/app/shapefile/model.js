@@ -163,7 +163,7 @@ class ShapefileModel {
   deleteDataStore(id) {
     return geoServerClient.request({
       method: 'DELETE',
-      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${id}`,
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${id}?recurse=true`,
     })
   }
 
