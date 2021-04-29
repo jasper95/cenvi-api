@@ -177,16 +177,12 @@ class ShapefileModel {
   async deleteShapefile(id) {
     await this.deleteDataStore(id)
     const styleId = `${process.env.GEOSERVER_WORKSPACE}:${id}`
-    const styleExist = await geoServerClient.request({
-      method: 'GET',
-      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}`,
+    await geoServerClient.request({
+      method: 'DELETE',
+      url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}?purge=true&recurse=true`,
+    }).catch(err => {
+      // does not exists
     })
-    if(styleExist) {
-      await geoServerClient.request({
-        method: 'DELETE',
-        url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}`,
-      })
-    }
   }
 }
 
