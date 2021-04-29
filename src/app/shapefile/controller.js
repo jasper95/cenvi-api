@@ -49,10 +49,10 @@ export default class ShapefileController {
     const { node, id } = params
     if (id === 'bulk') {
       const { ids } = params
-      await Promise.mapSeries(ids, (element_id) => this.Model.deleteShapefile(element_id))
+      await Promise.mapSeries(ids, (element_id) => this.Model.shapefile.deleteShapefile(element_id))
       return this.DB.deleteByFilter(node, q => q.whereIn('id', ids))
     }
-    await this.Model.deleteShapefile(id);
+    await this.Model.shapefile.deleteShapefile(id);
     return this.DB.deleteById(node, params)
   }
 
