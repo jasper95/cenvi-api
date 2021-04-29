@@ -19,7 +19,7 @@ const routes = {
   ],
   del: [
     {
-      url: '/shapefile',
+      url: '/shapefile/:id',
       handler: 'deleteShapefile'
     }
   ]

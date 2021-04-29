@@ -119,6 +119,7 @@ class ShapefileModel {
     })
   }
 
+
   async publishStyle(sld_path, id) {
     const shape_stat = await fs.statAsync(sld_path)
     await geoServerClient.request({
@@ -159,11 +160,22 @@ class ShapefileModel {
     })
   }
 
-  async deleteShapefile(id) {
-    await geoServerClient.request({
+  deleteDataStore(id) {
+    return geoServerClient.request({
       method: 'DELETE',
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${id}`,
     })
+  }
+
+  async updateShapeFile(shape_path, id) {
+    // delete existing
+    await this.deleteDataStore(id)
+    // create new
+    return this.publishGeoData(shape_path, id)
+  }
+
+  async deleteShapefile(id) {
+    await this.deleteDataStore(id)
     const styleId = `${process.env.GEOSERVER_WORKSPACE}:${id}`
     const styleExist = await geoServerClient.request({
       method: 'GET',

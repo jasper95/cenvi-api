@@ -37,7 +37,7 @@ export default class ShapefileController {
       const shape_path = await this.Model.shapefile
         .packageShapefile(file.path, id, extension)
       await this.Model.shapefile
-        .publishGeoData(shape_path, id)
+        .updateShapeFile(shape_path, id)
     }
     if (sld) {
       await this.Model.shapefile.updateStyle(sld.path, id)
@@ -47,6 +47,11 @@ export default class ShapefileController {
 
   async deleteShapefile({ params }) {
     const { node, id } = params
+    if (id === 'bulk') {
+      const { ids } = params
+      await Promise.mapSeries(ids, (element_id) => this.Model.deleteShapefile(element_id))
+      return this.DB.deleteByFilter(node, q => q.whereIn('id', ids))
+    }
     await this.Model.deleteShapefile(id);
     return this.DB.deleteById(node, params)
   }
