@@ -164,6 +164,8 @@ class ShapefileModel {
     return geoServerClient.request({
       method: 'DELETE',
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/datastores/${id}?recurse=true`,
+    }).catch(() => {
+      // does not exist
     })
   }
 
@@ -180,7 +182,8 @@ class ShapefileModel {
     await geoServerClient.request({
       method: 'DELETE',
       url: `/workspaces/${process.env.GEOSERVER_WORKSPACE}/styles/${styleId}?purge=true&recurse=true`,
-    }).catch(err => {
+    })
+    .catch(err => {
       // does not exists
     })
   }
