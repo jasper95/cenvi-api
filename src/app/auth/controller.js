@@ -2,7 +2,8 @@ import {
   generateHash,
   generateSalt,
   formatHTML,
-  generateSlug
+  generateSlug,
+  getPortalLink
 } from 'utils'
 import jwt from 'jsonwebtoken'
 
@@ -23,9 +24,10 @@ export default class UserController {
   async validateToken({ params }) {
     const { token, type: type_param } = params
     try {
-      const { id, type, expiry, user_id } = jwt.verify(token, process.env.AUTH_SECRET)
+      const { id, expiry, user_id } = jwt.verify(token, process.env.AUTH_SECRET)
       const record = await this.DB.find('token', id)
-      if (type !== type_param || !record) {
+      if (!record || type_param !== record.type) {
+        console.log('type: ', type, type_param);
         throw { success: false, message: 'Invalid Token'}
       }
       if (expiry && isAfter(new Date(expiry), new Date())) {
@@ -40,7 +42,7 @@ export default class UserController {
     }
   }
 
-  async signup({ params }) {
+  async signup({ params, headers }) {
     // validate email
     const [user_exists] = await this.Model.base.validateUnique('user', { email: params.email })
     if (user_exists) {
@@ -69,10 +71,10 @@ export default class UserController {
       payload: {
         user_id: user.id
       },
-      type: 'signup',
+      type: 'activate',
       has_expiry: false
     })
-    const html = await formatHTML('signup', { confirm_link: `${process.env.PORTAL_LINK}/verify?token=${token}`, name })
+    const html = await formatHTML('activate', { confirm_link: `${getPortalLink(headers)}/activate?token=${token}`, name })
     await sendgrid.send({
       from: {
         name: 'CENVI',

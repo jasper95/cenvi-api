@@ -25,7 +25,8 @@ const basic_auth_routes = {
     '/base/category',
     '/base/shapefile',
     '/shapefile/:id/bbox',
-    '/base/resource'
+    '/base/resource',
+    '/validate-token'
   ],
   POST: [
     '/signup',

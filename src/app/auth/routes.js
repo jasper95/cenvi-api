@@ -6,7 +6,7 @@ const routes = {
     },
     {
       url: '/validate-token',
-      handler: 'getSession'
+      handler: 'validateToken'
     }
   ],
   post: [

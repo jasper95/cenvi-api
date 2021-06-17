@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel src -d build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server.js --exec babel-node",
+    "dev": "pm2-dev start pm2/dev.json",
     "start": "pm2-runtime start ecosystem.config.js",
     "lint": "eslint src/"
   },
@@ -59,8 +59,5 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^13.0.0",
     "eslint-plugin-import": "^2.13.0"
-  },
-  "engines": {
-    "node": "10.x"
   }
 }

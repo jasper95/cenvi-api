@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "cenvi-api",
+      "script": "src/server.js",
+      "exec_interpreter": "babel-node",
+      "watch": ["src"],
+      "instances": 1,
+      "autorestart": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}
