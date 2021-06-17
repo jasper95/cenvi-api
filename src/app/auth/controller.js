@@ -48,23 +48,9 @@ export default class UserController {
     if (user_exists) {
       throw { success: false, message: 'Email already taken.' }
     }
-
-    if (params.role === 'ADMIN') {
-      const [company_exists] = await this.Model.base.validateUnique('company', { name: params.company_name })
-      if (company_exists) {
-        throw { success: false, message: 'Company name already taken' }
-      }
-      const company = await this.DB.insert('company', { ...params, name: params.company_name })
-      params.company_id = company.id
-      params.slug = generateSlug(company.name)
-    } else {
-      params.slug = generateSlug(params.first_name, params.last_name)
-    }
+    params.slug = generateSlug(params.first_name, params.last_name)
 
     const user = await this.DB.insert('user', params)
-    const salt = generateSalt()
-    this.DB.insert('user_auth',
-      { user_id: user.id, password: generateHash(params.password, salt), salt })
     const sendgrid = this.serviceLocator.get('sendgrid')
     const { first_name: name } = params
     const token = await this.Model.auth.generateToken({
@@ -85,37 +71,6 @@ export default class UserController {
       html
     })
 
-    return {
-      success: true
-    }
-  }
-
-  async createUser({ params }) {
-    const { email } = params
-    const [user_exists] = await this.Model.base.validateUnique('user', { email })
-    if (user_exists) {
-      throw { success: false, message: 'Email already taken.' }
-    }
-    const user = await this.DB.insert('user', params)
-    const sendgrid = this.serviceLocator.get('sendgrid')
-    const { first_name: name } = params
-    const token = await this.Model.auth.generateToken({
-      payload: {
-        user_id: user.id
-      },
-      type: 'activate',
-      has_expiry: false
-    })
-    const html = await formatHTML('activate', { confirm_link: `${process.env.PORTAL_LINK}/activate?token=${token}`, name })
-    await sendgrid.send({
-      from: {
-        name: 'CENVI',
-        email: process.env.EMAIL_FROM
-      },
-      to: user.email,
-      subject: 'Verify CENVI Account',
-      html
-    })
     return {
       success: true
     }
