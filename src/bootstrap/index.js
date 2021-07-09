@@ -1,6 +1,8 @@
 import path from 'path'
 import util from 'util'
 import sendgrid from '@sendgrid/mail'
+import nodemailer from 'nodemailer'
+import smtpTransport from 'nodemailer-smtp-transport'
 import S3Client from 'aws-sdk/clients/s3'
 import {
   serviceLocator
@@ -10,9 +12,16 @@ import {
 export default async ({ server, log }) => {
   const dir = path.join(__dirname, './initializers')
 
+  const mailTransporter = nodemailer.createTransport(smtpTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASSWORD
+    }
+  }));
   sendgrid.setApiKey(process.env.SEND_GRID_API_KEY)
-  console.log('process.env.SEND_GRID_API_KEY: ', process.env.SEND_GRID_API_KEY);
-
+  serviceLocator.registerService('mailTransporter', mailTransporter)
   serviceLocator.registerService('sendgrid', sendgrid)
   serviceLocator.registerService('logger', log)
   serviceLocator.registerService('s3', new S3Client({

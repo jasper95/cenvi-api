@@ -21,7 +21,7 @@ const geoServerClient = axios.create({
   },
   baseURL: `${process.env.GEOSERVER_URL}/rest`,
   maxContentLength: Infinity,
-  maxBodyLength: Infinity,
+  maxBodyLength: Infinity
 })
 geoServerClient.interceptors.response.use(response => response.data, err => Promise.reject(err))
 
@@ -142,4 +142,16 @@ export const whereAnd = (query, filters) => {
 export function getPortalLink(headers) {
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   return `${protocol}://${headers.referer.split('/')[2]}`
+}
+
+export function sendEmailNodemailer(options) {
+  const mailTransporter = serviceLocator.get('mailTransporter')
+  return new Promise((resolve, reject) => {
+    mailTransporter.sendMail(options, (error, data) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(data)
+    });
+  })
 }

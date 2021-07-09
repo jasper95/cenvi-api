@@ -3,7 +3,8 @@ import {
   generateSalt,
   formatHTML,
   generateSlug,
-  getPortalLink
+  getPortalLink,
+  sendEmailNodemailer
 } from 'utils'
 import jwt from 'jsonwebtoken'
 
@@ -51,7 +52,7 @@ export default class UserController {
     params.slug = generateSlug(params.first_name, params.last_name)
 
     const user = await this.DB.insert('user', params)
-    const sendgrid = this.serviceLocator.get('sendgrid')
+    // const sendgrid = this.serviceLocator.get('sendgrid')
     const { first_name: name } = params
     const token = await this.Model.auth.generateToken({
       payload: {
@@ -61,15 +62,12 @@ export default class UserController {
       has_expiry: false
     })
     const html = await formatHTML('activate', { confirm_link: `${getPortalLink(headers)}/activate?token=${token}`, name })
-    await sendgrid.send({
-      from: {
-        name: 'CENVI',
-        email: process.env.EMAIL_FROM
-      },
-      to: user.email,
+    await sendEmailNodemailer({
+      html,
+      from: `"CENVI" ${process.env.EMAIL_FROM}`,
       subject: 'Verify CENVI Account',
-      html
-    })
+      to: user.email,
+    });
 
     return {
       success: true
@@ -114,16 +112,12 @@ export default class UserController {
       'reset-password',
       { reset_link: `${process.env.PORTAL_LINK}/reset-password?token=${token}`, name: user.first_name }
     )
-    const sendgrid = this.serviceLocator.get('sendgrid')
-    await sendgrid.send({
-      from: {
-        name: 'CENVI',
-        email: process.env.EMAIL_FROM
-      },
-      to: email,
+    await sendEmailNodemailer({
+      html,
+      from: `"CENVI" ${process.env.EMAIL_FROM}`,
       subject: 'Reset CENVI Account Password',
-      html
-    })
+      to: email,
+    });
     return { success: true }
   }
 
