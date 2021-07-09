@@ -27,7 +27,7 @@
     "jsonwebtoken": "^8.3.0",
     "jszip": "^3.2.2",
     "knex-wrapper": "^1.1.34",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "mime-types": "^2.1.24",
     "morgan": "^1.9.1",
     "nconf": "^0.10.0",
