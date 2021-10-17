@@ -10,8 +10,7 @@ export default class PostModel {
   }
 
   async createFacebookPost(post, portal_link) {
-    if(!process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN)
-      return;
+    if (!process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN) { return; }
     const singular_types = ['news']
     let { type } = post
     if (!singular_types.includes(type)) {

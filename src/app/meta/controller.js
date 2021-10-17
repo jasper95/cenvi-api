@@ -1,3 +1,7 @@
+import {
+  getPortalLink
+} from 'utils'
+
 export default class MetaTagsController {
   constructor({
     DB, knex, Model, serviceLocator
@@ -24,7 +28,7 @@ export default class MetaTagsController {
         <html>
           <head>
             <meta property="og:type" content="article" />
-            <meta property="og:url": content="${[process.env.PORTAL_LINK, 'api', 'meta', slug].join('/')}"/>
+            <meta property="og:url": content="${[getPortalLink(headers), 'api', 'meta', slug].join('/')}"/>
             <meta property="og:title" content="${post.name}" />
             <meta property="og:description" content="${post.excerpt}" />
             <meta property="og:image" content="${[process.env.STATIC_URL, post.image_url].join('/')}" />
@@ -40,6 +44,6 @@ export default class MetaTagsController {
       res.end();
       return
     }
-    res.redirect([process.env.PORTAL_LINK, type, slug].join('/'), next);
+    res.redirect([getPortalLink(headers), type, slug].join('/'), next);
   }
 }

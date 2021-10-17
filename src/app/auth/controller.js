@@ -96,7 +96,7 @@ export default class UserController {
     }
   }
 
-  async forgotPassword({ params }) {
+  async forgotPassword({ params, headers }) {
     const { email } = params
     const user = await this.DB.find('user', email, [], 'email')
     if (!user) {
@@ -110,7 +110,7 @@ export default class UserController {
     })
     const html = await formatHTML(
       'reset-password',
-      { reset_link: `${process.env.PORTAL_LINK}/reset-password?token=${token}`, name: user.first_name }
+      { reset_link: `${getPortalLink(headers)}/reset-password?token=${token}`, name: user.first_name }
     )
     await sendEmailNodemailer({
       html,
