@@ -31,7 +31,7 @@
     "mime-types": "^2.1.24",
     "morgan": "^1.9.1",
     "nconf": "^0.10.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "nodemailer": "^6.6.2",
     "nodemailer-smtp-transport": "^2.7.4",
     "parsedbf": "^1.0.0",
